@@ -4,13 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Include Bootstrap CSS -->
+    <!-- Include Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Include Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -20,9 +15,6 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-
-    <!-- Scripts -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 <body>
     <div id="app">
@@ -55,23 +47,25 @@
                                 @endif
                             @else
                                 <li class="nav-item dropdown">
-                                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
                                     </a>
 
-                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                         @if (Auth::guard('faculty')->check())
-                                            <a class="dropdown-item" href="{{ route('faculty.schedule') }}">My Schedule</a>
-                                            <a class="dropdown-item" href="{{ route('faculty.profile') }}">Profile</a>
+                                            <li><a class="dropdown-item" href="{{ route('faculty.schedule') }}">My Schedule</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('faculty.profile') }}">Profile</a></li>
                                         @endif
-                                        <a class="dropdown-item" href="{{ route('logout') }}"
-                                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('logout') }}"
+                                              onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                             {{ __('Logout') }}
-                                        </a>
-                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                            @csrf
+                                            </a>
+                                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                             @csrf
                                         </form>
-                                    </div>
+                                        </li>
+                                    </ul>
                                 </li>
                             @endguest
                         </ul>
@@ -84,5 +78,9 @@
             @yield('content')
         </main>
     </div>
+
+    <!-- Include Bootstrap 5.3 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
