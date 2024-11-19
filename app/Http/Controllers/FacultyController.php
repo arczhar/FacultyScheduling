@@ -55,4 +55,22 @@ class FacultyController extends Controller
         return view('faculty.profile', compact('faculty'));
     }
 
+    public function showChangePasswordForm()
+    {
+        return view('faculty.change-password');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $faculty = Auth::user();
+        $faculty->password = Hash::make($request->password);
+        $faculty->password_changed = true; // Update password_changed field
+        $faculty->save();
+
+        return redirect()->route('faculty.dashboard')->with('success', 'Password changed successfully.');
+    }
 }

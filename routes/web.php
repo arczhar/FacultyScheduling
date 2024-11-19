@@ -57,6 +57,14 @@ Route::middleware(['auth:faculty'])->group(function () {
     Route::post('/faculty/profile/update', [FacultyController::class, 'updateProfile'])->name('faculty.profile.update'); // Profile update route
 });
 
+Route::get('/faculty/change-password', [FacultyController::class, 'showChangePasswordForm'])
+    ->name('faculty.change-password')
+    ->middleware(['auth:faculty']);
+
+Route::post('/faculty/change-password', [FacultyController::class, 'updatePassword'])
+    ->name('faculty.update-password')
+    ->middleware(['auth:faculty']);
+
 
 // Authentication routes
 Auth::routes();
