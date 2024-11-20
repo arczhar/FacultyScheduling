@@ -1,5 +1,3 @@
-<!-- resources/views/admin/schedules/index.blade.php -->
-
 @extends('layouts.admin')
 
 @section('title', 'Manage Schedules')
@@ -23,18 +21,17 @@
         </div>
     @endif
 
-    <!-- Button to trigger the Add Schedule modal -->
-    <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
+    <!-- Add Schedule Button -->
+    <button type="button" class="btn btn-primary mb-4" data-toggle="modal" data-target="#addScheduleModal">
         Add Schedule
     </button>
 
     <!-- Schedules Table -->
     <div class="card shadow-sm">
         <div class="card-body">
-            <table class="table table-hover">
-                <thead>
+            <table class="table table-hover table-striped">
+                <thead class="thead-dark">
                     <tr>
-                        
                         <th>Faculty</th>
                         <th>Subject</th>
                         <th>Day</th>
@@ -47,7 +44,6 @@
                 <tbody>
                 @forelse($schedules as $schedule)
                 <tr>
-                    
                     <td>{{ $schedule->faculty->first_name ?? 'N/A' }} {{ $schedule->faculty->last_name ?? '' }}</td>
                     <td>{{ $schedule->subject->subject_code ?? 'N/A' }} - {{ $schedule->subject->subject_description ?? '' }}</td>
                     <td>{{ $schedule->day }}</td>
@@ -64,10 +60,9 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center">No schedules available.</td>
+                    <td colspan="7" class="text-center">No schedules available.</td>
                 </tr>
                 @endforelse
-
                 </tbody>
             </table>
         </div>
@@ -75,19 +70,21 @@
 </div>
 
 <!-- Add Schedule Modal -->
-<div class="modal fade" id="addScheduleModal" tabindex="-1" aria-labelledby="addScheduleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="addScheduleModal" tabindex="-1" role="dialog" aria-labelledby="addScheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="addScheduleModalLabel">Add Schedule</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <form method="POST" action="{{ route('admin.schedules.store') }}">
                 @csrf
                 <div class="modal-body">
                     <!-- Faculty -->
-                    <div class="mb-3">
-                        <label for="faculty_id" class="form-label">Faculty</label>
+                    <div class="form-group">
+                        <label for="faculty_id">Faculty</label>
                         <select name="faculty_id" id="faculty_id" class="form-control" required>
                             @foreach($faculties as $faculty)
                                 <option value="{{ $faculty->id }}">{{ $faculty->first_name }} {{ $faculty->last_name }}</option>
@@ -95,8 +92,8 @@
                         </select>
                     </div>
                     <!-- Subject -->
-                    <div class="mb-3">
-                        <label for="subject_id" class="form-label">Subject</label>
+                    <div class="form-group">
+                        <label for="subject_id">Subject</label>
                         <select name="subject_id" id="subject_id" class="form-control" required>
                             @foreach($subjects as $subject)
                                 <option value="{{ $subject->id }}">{{ $subject->subject_code }} - {{ $subject->subject_description }}</option>
@@ -104,8 +101,8 @@
                         </select>
                     </div>
                     <!-- Room -->
-                    <div class="mb-3">
-                        <label for="room_id" class="form-label">Room</label>
+                    <div class="form-group">
+                        <label for="room_id">Room</label>
                         <select name="room_id" id="room_id" class="form-control" required>
                             @foreach($rooms as $room)
                                 <option value="{{ $room->id }}">{{ $room->room_name }}</option>
@@ -113,8 +110,8 @@
                         </select>
                     </div>
                     <!-- Day -->
-                    <div class="mb-3">
-                        <label for="day" class="form-label">Day</label>
+                    <div class="form-group">
+                        <label for="day">Day</label>
                         <select name="day" id="day" class="form-control" required>
                             <option value="Monday">Monday</option>
                             <option value="Tuesday">Tuesday</option>
@@ -126,19 +123,19 @@
                         </select>
                     </div>
                     <!-- Start Time -->
-                    <div class="mb-3">
-                        <label for="start_time" class="form-label">Start Time</label>
+                    <div class="form-group">
+                        <label for="start_time">Start Time</label>
                         <input type="time" name="start_time" id="start_time" class="form-control" required>
                     </div>
                     <!-- End Time -->
-                    <div class="mb-3">
-                        <label for="end_time" class="form-label">End Time</label>
+                    <div class="form-group">
+                        <label for="end_time">End Time</label>
                         <input type="time" name="end_time" id="end_time" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </form>
         </div>
