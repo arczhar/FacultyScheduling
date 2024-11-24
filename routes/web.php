@@ -40,12 +40,15 @@ Route::middleware(['auth:web', 'admin'])->group(function () {
     ]);
 
     // Schedule Management
-    Route::resource('/admin/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'destroy'])->names([
+    Route::resource('/admin/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])->names([
         'index' => 'admin.schedules.index',
         'create' => 'admin.schedules.create',
         'store' => 'admin.schedules.store',
+        'edit' => 'admin.schedules.edit',
+        'update' => 'admin.schedules.update',
         'destroy' => 'admin.schedules.destroy',
     ]);
+    
     Route::delete('/admin/schedules/{id}', [ScheduleController::class, 'destroy'])->name('admin.schedules.destroy');
 
 });

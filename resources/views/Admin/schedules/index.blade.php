@@ -37,6 +37,7 @@
                     <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                     <td>{{ $schedule->room->room_name ?? 'N/A' }}</td>
                     <td>
+                        <a href="{{ route('admin.schedules.edit', $schedule->id) }}" class="btn btn-warning btn-sm">Edit</a>
                         <button class="btn btn-danger btn-sm delete-schedule-btn" data-id="{{ $schedule->id }}">Delete</button>
                     </td>
                 </tr>
