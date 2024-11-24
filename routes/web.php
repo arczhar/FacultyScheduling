@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:web', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 
+    // Faculty Management
     Route::resource('/admin/faculty', AdminFacultyController::class)->names([
         'index' => 'admin.faculty.index',
         'store' => 'admin.faculty.store',
@@ -20,10 +21,8 @@ Route::middleware(['auth:web', 'admin'])->group(function () {
         'update' => 'admin.faculty.update',
         'destroy' => 'admin.faculty.destroy',
     ]);
-    Route::get('/admin/schedules/{id}/edit', [ScheduleController::class, 'edit'])->name('admin.schedules.edit');
-    Route::put('/admin/schedules/{id}', [ScheduleController::class, 'update'])->name('admin.schedules.update');
 
-
+    // Subject Management
     Route::resource('/admin/subjects', SubjectController::class)->names([
         'index' => 'admin.subjects.index',
         'store' => 'admin.subjects.store',
@@ -32,6 +31,7 @@ Route::middleware(['auth:web', 'admin'])->group(function () {
         'destroy' => 'admin.subjects.destroy',
     ]);
 
+    // Room Management
     Route::resource('/admin/rooms', RoomController::class)->names([
         'index' => 'admin.rooms.index',
         'store' => 'admin.rooms.store',
@@ -39,15 +39,25 @@ Route::middleware(['auth:web', 'admin'])->group(function () {
         'destroy' => 'admin.rooms.destroy',
     ]);
 
-    Route::resource('/admin/schedules', ScheduleController::class)->names([
+    // Schedule Management
+    Route::resource('/admin/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'destroy'])->names([
         'index' => 'admin.schedules.index',
         'create' => 'admin.schedules.create',
         'store' => 'admin.schedules.store',
-        'edit' => 'admin.schedules.edit',
-        'update' => 'admin.schedules.update',
         'destroy' => 'admin.schedules.destroy',
     ]);
+    Route::delete('/admin/schedules/{id}', [ScheduleController::class, 'destroy'])->name('admin.schedules.destroy');
+
 });
+
+// AJAX routes for fetching details and conflict checking
+Route::get('/get-faculty-details/{facultyId}', [ScheduleController::class, 'getFacultyDetails'])->name('get-faculty-details');
+Route::get('/get-subjects', [ScheduleController::class, 'getSubjects'])->name('get-subjects');
+Route::get('/get-subject-details/{id}', [SubjectController::class, 'getSubjectDetails'])->name('get-subject-details');
+Route::post('/check-schedule-conflict', [ScheduleController::class, 'checkAndSaveSchedule'])->name('check-schedule-conflict');
+Route::post('/admin/schedules', [ScheduleController::class, 'store'])->name('admin.schedules.store');
+
+
 
 // Faculty routes, only accessible by users with 'faculty' role
 Route::middleware(['auth:faculty'])->group(function () {
@@ -64,6 +74,15 @@ Route::get('/faculty/change-password', [FacultyController::class, 'showChangePas
 Route::post('/faculty/change-password', [FacultyController::class, 'updatePassword'])
     ->name('faculty.update-password')
     ->middleware(['auth:faculty']);
+
+// Miscellaneous routes for testing or additional functionality
+Route::get('/simple-page', function () {
+    return view('simple');
+});
+
+Route::get('/test-modal', function () {
+    return view('test-modal');
+})->name('test-modal');
 
 
 // Authentication routes

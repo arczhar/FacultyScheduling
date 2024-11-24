@@ -9,8 +9,21 @@ class Schedule extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['faculty_id', 'subject_id', 'room_id', 'start_time', 'end_time', 'day'];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'faculty_id',
+        'subject_id',
+        'room_id',
+        'start_time',
+        'end_time',
+        'day',
+    ];
 
+    // Define relationships if not already done
     public function faculty()
     {
         return $this->belongsTo(Faculty::class);

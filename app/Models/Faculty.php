@@ -17,4 +17,16 @@ class Faculty extends Authenticatable
     ];
 
     protected $table = 'faculty';
+    
+    public function position()
+    {
+        return $this->belongsTo(Position::class);
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class, 'faculty_id');
+    }
+    
+
 }

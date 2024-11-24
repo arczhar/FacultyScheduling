@@ -1,6 +1,4 @@
 <?php
-// app/Http/Controllers/SubjectController.php
-
 namespace App\Http\Controllers;
 
 use App\Models\Subject;
@@ -10,15 +8,14 @@ class SubjectController extends Controller
 {
     public function index()
     {
-        $subjects = Subject::all();
+        $subjects = Subject::paginate(10); // Pagination for subject listing
         return view('admin.subjects.index', compact('subjects'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'subject_id' => 'required|unique:subjects|max:10',
-            'subject_code' => 'required|string|max:10',
+            'subject_code' => 'required|string|max:10|unique:subjects,subject_code',
             'subject_description' => 'required|string|max:255',
             'type' => 'required|in:Lec,Lab',
             'credit_units' => 'required|integer|min:1|max:10',
@@ -40,8 +37,7 @@ class SubjectController extends Controller
         $subject = Subject::findOrFail($id);
 
         $request->validate([
-            'subject_id' => 'required|unique:subjects|max:10',
-            'subject_code' => 'required|string|max:10',
+            'subject_code' => 'required|string|max:10|unique:subjects,subject_code,' . $id,
             'subject_description' => 'required|string|max:255',
             'type' => 'required|in:Lec,Lab',
             'credit_units' => 'required|integer|min:1|max:10',
@@ -58,5 +54,20 @@ class SubjectController extends Controller
         $subject->delete();
 
         return redirect()->route('admin.subjects.index')->with('success', 'Subject deleted successfully.');
+    }
+
+    public function getSubjectDetails($id)
+    {
+        $subject = Subject::find($id);
+
+        if (!$subject) {
+            return response()->json(['error' => 'Subject not found'], 404);
+        }
+
+        return response()->json([
+            'subject_description' => $subject->subject_description,
+            'type' => $subject->type,
+            'units' => $subject->credit_units,
+        ]);
     }
 }

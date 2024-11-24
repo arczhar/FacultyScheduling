@@ -9,7 +9,7 @@ class Subject extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['subject_id', 'subject_code', 'subject_description', 'type', 'credit_units'];
+    protected $fillable = ['subject_code', 'subject_description', 'type', 'credit_units'];
 
     public function schedules()
     {
