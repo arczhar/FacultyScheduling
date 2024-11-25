@@ -7,7 +7,7 @@
     <h1 class="mb-4">List of Schedules</h1>
 
     <!-- Add Schedule Button -->
-    <a href="{{ Auth::user()->role === 'Admin' ? route('admin.schedules.create') : route('programchair.schedules.create') }}" class="btn btn-primary mb-4">Add Schedule</a>
+    <a href="{{ Auth::user()->role === 'admin' ? route('admin.schedules.create') : route('programchair.schedules.create') }}" class="btn btn-primary mb-4">Add Schedule</a>
 
     <!-- Success/Error Messages -->
     @if(session('success'))

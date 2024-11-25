@@ -46,17 +46,21 @@
             </div>
         </div>
 
-        <!-- Semester and School Year -->
+       <!-- Semester and School Year -->
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label for="semester">Semester</label>
-                <input type="text" class="form-control" id="semester" name="semester" value="2nd Sem" readonly>
+                <select class="form-control" id="semester" name="semester" required>
+                    <option value="1st Semester" {{ old('semester') == '1st Semester' ? 'selected' : '' }}>1st Semester</option>
+                    <option value="2nd Semester" {{ old('semester') == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option>
+                    <option value="Summer" {{ old('semester') == 'Summer' ? 'selected' : '' }}>Summer</option>
+                </select>
             </div>
-            <div class="form-group col-md-6">
-                <label for="school_year">School Year</label>
-                <input type="text" class="form-control" id="school_year" name="school_year" value="2024-2025" readonly>
-            </div>
-        </div>
+    <div class="form-group col-md-6">
+        <label for="school_year">School Year</label>
+        <input type="text" class="form-control" id="school_year" name="school_year" value="2024-2025" readonly>
+    </div>
+</div>
 
         <!-- Faculty Schedule Table -->
         <h6 class="mt-4">Faculty's Schedules</h6>

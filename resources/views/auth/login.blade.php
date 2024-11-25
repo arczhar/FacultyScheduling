@@ -25,7 +25,7 @@
         <form method="POST" action="{{ route('login') }}">
             @csrf
             <div class="form-group mb-3">
-                <label for="username" class="form-label">ID Number</label>
+                <label for="username" class="form-label">Email</label>
                 <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" required autofocus >
                 @error('username')
                     <span class="invalid-feedback" role="alert">
