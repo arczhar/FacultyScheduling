@@ -75,14 +75,18 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        if (Auth::guard('web')->check()) {
+        // Redirect based on user role
+        if (strtolower($user->role) === 'admin') {
             return redirect()->route('admin.dashboard');
-        } elseif (Auth::guard('faculty')->check()) {
-            return redirect()->route('faculty.dashboard');
+        } elseif (strtolower($user->role) === 'program chair') {
+            return redirect()->route('programchair.dashboard');
         }
 
-        return redirect('/home');
+        return redirect('/'); // Default fallback
     }
+
+
+
 
     /**
      * Redirect after logout.

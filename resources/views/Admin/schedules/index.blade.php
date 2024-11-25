@@ -7,7 +7,7 @@
     <h1 class="mb-4">List of Schedules</h1>
 
     <!-- Add Schedule Button -->
-    <a href="{{ route('admin.schedules.create') }}" class="btn btn-primary mb-4">Add Schedule</a>
+    <a href="{{ Auth::user()->role === 'Admin' ? route('admin.schedules.create') : route('programchair.schedules.create') }}" class="btn btn-primary mb-4">Add Schedule</a>
 
     <!-- Success/Error Messages -->
     @if(session('success'))
@@ -37,7 +37,7 @@
                     <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</td>
                     <td>{{ $schedule->room->room_name ?? 'N/A' }}</td>
                     <td>
-                        <a href="{{ route('admin.schedules.edit', $schedule->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{{ Auth::user()->role === 'admin' ? route('admin.schedules.edit', $schedule->id) : route('programchair.schedules.edit', $schedule->id) }}" class="btn btn-warning btn-sm">Edit</a>
                         <button class="btn btn-danger btn-sm delete-schedule-btn" data-id="{{ $schedule->id }}">Delete</button>
                     </td>
                 </tr>
@@ -48,8 +48,6 @@
                 @endforelse
                 </tbody>
             </table>
-
-            <!-- Pagination -->
             <div class="mt-3">
                 {{ $schedules->links() }}
             </div>
@@ -65,7 +63,7 @@
             var scheduleId = $(this).data('id');
             if (confirm('Are you sure you want to delete this schedule?')) {
                 $.ajax({
-                    url: `/admin/schedules/${scheduleId}`,
+                    url: `{{ route(Auth::user()->role === 'Admin' ? 'admin.schedules.destroy' : 'programchair.schedules.destroy', '') }}/${scheduleId}`,
                     method: 'DELETE',
                     data: {
                         _token: '{{ csrf_token() }}'
