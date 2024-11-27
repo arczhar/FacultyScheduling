@@ -24,3 +24,6 @@
     margin-left: 250px; /* Adjust based on sidebar width */
     padding: 20px;
 }
+.pagination svg {
+    display: none; /* Hides the icons */
+}

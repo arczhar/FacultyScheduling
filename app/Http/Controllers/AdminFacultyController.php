@@ -10,52 +10,66 @@ class AdminFacultyController extends Controller
 {
     public function index()
     {
-        $faculties = Faculty::all(); // Get all faculty members
+        $faculties = Faculty::paginate(5); // Paginate the faculty list
         return view('admin.faculty.index', compact('faculties'));
+    }
+
+    public function show($id)
+    {
+        try {
+            $faculty = Faculty::findOrFail($id); // Find the faculty or throw a 404 error
+            return response()->json(['success' => true, 'faculty' => $faculty]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Faculty not found.'], 404);
+        }
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'id_number' => 'required|unique:faculty,id_number',
+        $validated = $request->validate([
+            'id_number' => 'required|unique:faculty',
             'first_name' => 'required|string|max:255',
-            'middle_initial' => 'nullable|string|max:1',
             'last_name' => 'required|string|max:255',
+            'middle_initial' => 'nullable|string|max:1',
             'position' => 'nullable|string|max:255',
         ]);
 
-        Faculty::create([
-            'id_number' => $request->id_number,
-            'first_name' => $request->first_name,
-            'middle_initial' => $request->middle_initial,
-            'last_name' => $request->last_name,
-            'position' => $request->position,
-            'password' => Hash::make('faculty2024'), // Set default password
-            'name' => 'required|string|max:255', // Add this if 'name' is mandatory
+        $faculty = Faculty::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'faculty' => $faculty,
         ]);
-
-        return redirect()->route('admin.faculty.index')->with('success', 'Faculty added successfully.');
-
     }
 
-    public function update(Request $request, Faculty $faculty)
+
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'id_number' => 'required|unique:faculty,id_number,' . $faculty->id,
+        $faculty = Faculty::findOrFail($id);
+
+        $validated = $request->validate([
+            'id_number' => 'required|unique:faculty,id_number,' . $id,
             'first_name' => 'required|string|max:255',
-            'middle_initial' => 'nullable|string|max:1',
             'last_name' => 'required|string|max:255',
+            'middle_initial' => 'nullable|string|max:1',
             'position' => 'nullable|string|max:255',
         ]);
 
-        $faculty->update([
-            'id_number' => $request->id_number,
-            'first_name' => $request->first_name,
-            'middle_initial' => $request->middle_initial,
-            'last_name' => $request->last_name,
-            'position' => $request->position,
-        ]);
+        $faculty->update($validated);
 
-        return redirect()->route('admin.faculty.index')->with('success', 'Faculty updated successfully.');
+        return response()->json([
+            'success' => true,
+            'faculty' => $faculty,
+        ]);
     }
+
+    public function edit($id)
+    {
+        $faculty = Faculty::findOrFail($id); // Fetch faculty by ID
+        return response()->json($faculty);
+    }
+
+    
+    
+
 }
