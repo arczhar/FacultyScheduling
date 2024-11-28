@@ -7,22 +7,24 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.css" rel="stylesheet" />
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <style>
-    /* Target the SVG icons in the pagination links */
-    .pagination svg {
-        width: 16px; /* Adjust the width */
-        height: 16px; /* Adjust the height */
-    }
-
-    /* Optionally, adjust the spacing between pagination items */
-    .pagination .page-item {
-        margin: 0 5px;
-    }
-</style>
-
+        /* Custom pagination and sidebar styles */
+        .pagination svg {
+            width: 16px;
+            height: 16px;
+        }
+        .pagination .page-item {
+            margin: 0 5px;
+        }
+    </style>
 </head>
 <body>
     <!-- Navbar -->
@@ -66,6 +68,7 @@
                 <a href="{{ route('admin.faculty.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.faculty.index') ? 'bg-dark' : '' }}">Manage Faculty</a>
                 <a href="{{ route('admin.subjects.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.subjects.index') ? 'bg-dark' : '' }}">Manage Subjects</a>
                 <a href="{{ route('admin.rooms.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.rooms.index') ? 'bg-dark' : '' }}">Manage Rooms</a>
+                <a href="{{ route('admin.examrm.examroom') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.examrm.examroom') ? 'bg-dark' : '' }}">Manage Exam Rooms</a>
             @endif
 
             <!-- Manage Schedules (Shared) -->
@@ -93,6 +96,10 @@
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    <!-- FullCalendar Global JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.js"></script>
+
     @stack('scripts')
 </body>
 </html>

@@ -6,6 +6,7 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AdminFacultyController;
+use App\Http\Controllers\ExamScheduleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,20 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
         'update' => 'admin.rooms.update',
         'destroy' => 'admin.rooms.destroy',
     ]);
+
+    Route::get('/admin/examrm/examroom/events', [ExamScheduleController::class, 'fetchEvents'])->name('admin.examrm.events');
+    Route::post('/admin/examrm/examroom/store', [ExamScheduleController::class, 'store'])->name('admin.examrm.store');
+    Route::put('/admin/examrm/examroom/update/{id}', [ExamScheduleController::class, 'update'])->name('admin.examrm.update');
+    Route::delete('/admin/examrm/examroom/delete/{id}', [ExamScheduleController::class, 'destroy'])->name('admin.examrm.destroy');
+
+
+    Route::get('/admin/examrm/examroom', [ExamScheduleController::class, 'index'])->name('admin.examrm.examroom');
+    Route::get('/admin/examrm/examroom/events', [ExamScheduleController::class, 'fetchEvents'])->name('admin.examrm.events');
+    Route::post('/admin/examrm/examroom/store', [ExamScheduleController::class, 'store'])->name('admin.examrm.store');
+    Route::delete('/admin/examrm/examroom/{id}', [ExamScheduleController::class, 'destroy'])->name('admin.examrm.destroy');
+
+    
+    
 
     // Schedule Management
     Route::resource('/admin/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])->names([
@@ -96,6 +111,11 @@ Route::get('/test-modal', function () {
 Route::get('/debug-role', function () {
     return Auth::check() ? 'Logged in as ' . Auth::user()->role : 'Not logged in';
 })->middleware('auth:web');
+
+Route::get('/test', function () {
+    return 'Test route works!';
+});
+    
 
 // Authentication Routes
 Auth::routes();

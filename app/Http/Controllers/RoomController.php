@@ -12,7 +12,7 @@ class RoomController extends Controller
      */
     public function index()
     {
-        $rooms = Room::all();
+        $rooms = Room::latest()->paginate(10); // Paginate the rooms, 10 per page
         return view('admin.rooms.index', compact('rooms'));
     }
 
@@ -25,11 +25,25 @@ class RoomController extends Controller
             'room_name' => 'required|string|unique:rooms|max:255',
         ]);
 
-        Room::create([
+        $room = Room::create([
             'room_name' => $request->room_name,
         ]);
 
-        return redirect()->route('admin.rooms.index')->with('success', 'Room added successfully.');
+        return response()->json([
+            'success' => true,
+            'room' => $room,
+        ]);
+    }
+
+    /**
+     * Show the specified room (for editing).
+     */
+    public function show(Room $room)
+    {
+        return response()->json([
+            'success' => true,
+            'room' => $room,
+        ]);
     }
 
     /**
@@ -45,7 +59,10 @@ class RoomController extends Controller
             'room_name' => $request->room_name,
         ]);
 
-        return redirect()->route('admin.rooms.index')->with('success', 'Room updated successfully.');
+        return response()->json([
+            'success' => true,
+            'room' => $room,
+        ]);
     }
 
     /**
@@ -54,6 +71,10 @@ class RoomController extends Controller
     public function destroy(Room $room)
     {
         $room->delete();
-        return redirect()->route('admin.rooms.index')->with('success', 'Room deleted successfully.');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Room deleted successfully.',
+        ]);
     }
 }
