@@ -68,12 +68,53 @@
         {{ $subjects->links('vendor.pagination.bootstrap-4') }}
     </div>
 </div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">Success</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Success message will be dynamically inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
 $(document).ready(function () {
     let initialFormData = $('#subjectForm').serialize();
+
+    // Function to check if all required fields are filled
+    function isFormValid() {
+        const isCodeValid = $('#subject_code').val().trim() !== '';
+        const isDescriptionValid = $('#subject_description').val().trim() !== '';
+        const isTypeValid = $('#type').val().trim() !== '';
+        const isUnitsValid = $('#credit_units').val().trim() !== '';
+        return isCodeValid && isDescriptionValid && isTypeValid && isUnitsValid;
+    }
+
+    // Function to check if form data has changed
+    function isFormChanged() {
+        return $('#subjectForm').serialize() !== initialFormData;
+    }
+
+    // Monitor changes in form inputs
+    $('#subjectForm input, #subjectForm select').on('input change', function () {
+        const isValid = isFormValid();
+        const isChanged = isFormChanged();
+        $('#submitSubjectButton').prop('disabled', !(isValid && isChanged));
+    });
 
     // Show/Hide Add Subject Form
     $('#toggleSubjectFormButton').click(function () {
@@ -83,6 +124,7 @@ $(document).ready(function () {
             $('#clearSubjectFormButton').hide();
             $('#toggleSubjectFormButton').text('Add Subject');
             $('#subjectForm')[0].reset();
+            $('#submitSubjectButton').prop('disabled', true);
         } else {
             $('#subjectForm').show();
             $('#clearSubjectFormButton').show();
@@ -126,6 +168,15 @@ $(document).ready(function () {
                 $('#subjectForm').hide();
                 $('#clearSubjectFormButton').hide();
                 $('#toggleSubjectFormButton').text('Add Subject');
+                $('#submitSubjectButton').text('Add Subject').prop('disabled', true);
+                initialFormData = $('#subjectForm').serialize();
+
+                // Show success modal
+                $('#successModal .modal-body').text(subjectId ? 'Subject updated successfully!' : 'Subject added successfully!');
+                $('#successModal').modal('show');
+            },
+            error: function () {
+                alert('An error occurred while saving the subject.');
             },
         });
     });
@@ -141,21 +192,52 @@ $(document).ready(function () {
             $('#type').val(subject.type);
             $('#credit_units').val(subject.credit_units);
             $('#submitSubjectButton').text('Update Subject');
+            $('#submitSubjectButton').prop('disabled', true);
             $('#subjectForm').show();
+            $('#clearSubjectFormButton').show();
             $('#toggleSubjectFormButton').text('Cancel');
+            initialFormData = $('#subjectForm').serialize();
         });
     });
 
     // Handle Delete Subject
     $(document).on('click', '.deleteSubjectButton', function () {
         const subjectId = $(this).data('id');
+
+        // Confirm deletion
+        if (!confirm('Are you sure you want to delete this subject?')) {
+            return;
+        }
+
         $.ajax({
-            url: '{{ route("admin.subjects.index") }}/' + subjectId,
+            url: `{{ route("admin.subjects.index") }}/${subjectId}`,
             method: 'DELETE',
-            success: function () {
-                $(`#subjectRow-${subjectId}`).remove();
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+            },
+            success: function (response) {
+                if (response.success) {
+                    $(`#subjectRow-${subjectId}`).remove();
+                    $('#successModal .modal-body').text('Subject deleted successfully!');
+                    $('#successModal').modal('show');
+                } else {
+                    alert('Failed to delete the subject.');
+                }
+            },
+            error: function () {
+                alert('An error occurred while deleting the subject.');
             },
         });
+    });
+
+    // Clear form handler
+    $('#clearSubjectFormButton').click(function () {
+        $('#subjectForm')[0].reset();
+        $('#subjectForm').hide();
+        $('#clearSubjectFormButton').hide();
+        $('#toggleSubjectFormButton').text('Add Subject');
+        $('#submitSubjectButton').text('Add Subject').prop('disabled', true);
+        initialFormData = $('#subjectForm').serialize();
     });
 });
 </script>
