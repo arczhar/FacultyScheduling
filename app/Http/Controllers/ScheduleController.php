@@ -12,9 +12,10 @@ class ScheduleController extends Controller
 {
     public function index()
     {
-        $schedules = Schedule::with(['faculty', 'subject', 'room'])->paginate(10);
-        return view('admin.schedules.index', compact('schedules'));
+        $faculties = Faculty::paginate(10); // Use paginate instead of all
+        return view('admin.schedules.index', compact('faculties'));
     }
+
 
     public function create()
     {
@@ -178,53 +179,69 @@ class ScheduleController extends Controller
     }
 
     public function edit($id)
-{
-    $schedule = Schedule::findOrFail($id);
-    $faculties = Faculty::all();
-    $subjects = Subject::all();
-    $rooms = Room::all();
-    return view('admin.schedules.edit', compact('schedule', 'faculties', 'subjects', 'rooms'));
-}
-
-public function update(Request $request, $id)
-{
-    $schedule = Schedule::findOrFail($id);
-
-    $request->validate([
-        'faculty_id' => 'required|exists:faculty,id',
-        'subject_id' => 'required|exists:subjects,id',
-        'room_id' => 'required|exists:rooms,id',
-        'start_time' => 'required|date_format:H:i',
-        'end_time' => 'required|date_format:H:i|after:start_time',
-        'day' => 'required',
-    ]);
-
-    // Conflict detection logic
-    $conflict = Schedule::where('id', '!=', $id)
-        ->where('day', $request->day)
-        ->where(function ($query) use ($request) {
-            $query->where('room_id', $request->room_id)
-                ->orWhere('faculty_id', $request->faculty_id);
-        })
-        ->where(function ($query) use ($request) {
-            $query->whereBetween('start_time', [$request->start_time, $request->end_time])
-                ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
-                ->orWhere(function ($query) use ($request) {
-                    $query->where('start_time', '<=', $request->start_time)
-                        ->where('end_time', '>=', $request->end_time);
-                });
-        })
-        ->exists();
-
-    if ($conflict) {
-        return back()->withErrors(['error' => 'Schedule conflict detected!']);
+    {
+        $schedule = Schedule::findOrFail($id);
+        $faculties = Faculty::all();
+        $subjects = Subject::all();
+        $rooms = Room::all();
+        return view('admin.schedules.edit', compact('schedule', 'faculties', 'subjects', 'rooms'));
     }
 
-    // Update the schedule
-    $schedule->update($request->all());
+    public function update(Request $request, $id)
+    {
+        $schedule = Schedule::findOrFail($id);
 
-    return redirect()->route('admin.schedules.index')->with('success', 'Schedule updated successfully.');
-}
+        $request->validate([
+            'faculty_id' => 'required|exists:faculty,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'room_id' => 'required|exists:rooms,id',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'day' => 'required',
+        ]);
 
+        // Conflict detection logic
+        $conflict = Schedule::where('id', '!=', $id)
+            ->where('day', $request->day)
+            ->where(function ($query) use ($request) {
+                $query->where('room_id', $request->room_id)
+                    ->orWhere('faculty_id', $request->faculty_id);
+            })
+            ->where(function ($query) use ($request) {
+                $query->whereBetween('start_time', [$request->start_time, $request->end_time])
+                    ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
+                    ->orWhere(function ($query) use ($request) {
+                        $query->where('start_time', '<=', $request->start_time)
+                            ->where('end_time', '>=', $request->end_time);
+                    });
+            })
+            ->exists();
+
+        if ($conflict) {
+            return back()->withErrors(['error' => 'Schedule conflict detected!']);
+        }
+
+        // Update the schedule
+        $schedule->update($request->all());
+
+        return redirect()->route('admin.schedules.index')->with('success', 'Schedule updated successfully.');
+    }
+
+    public function viewFacultySchedules($id)
+    {
+        \Log::info('viewFacultySchedules method called.');
+
+        $faculty = Faculty::with('schedules.subject', 'schedules.room')->findOrFail($id);
+        $schedules = $faculty->schedules;
+
+        return view('admin.schedules.view', compact('faculty', 'schedules'));
+    }
+
+
+    
+
+
+
+    
     
 }

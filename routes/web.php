@@ -25,6 +25,15 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
     Route::get('/admin/faculty/{id}/edit', [AdminFacultyController::class, 'edit']);
     Route::put('/admin/faculty/{id}', [AdminFacultyController::class, 'update']);
     Route::get('/admin/faculty/{id}', [AdminFacultyController::class, 'show'])->name('admin.faculty.show');
+    Route::get('/admin/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('admin.faculty.schedules');
+
+    Route::middleware(['auth:web', 'role:Program Chair'])->group(function () {
+        Route::get('/program-chair/dashboard', [AdminController::class, 'programChairDashboard'])->name('programchair.dashboard');
+    
+        // Program Chair Faculty Schedules
+        Route::get('/program-chair/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('programchair.faculty.schedules');
+    });
+    
 
     // Subject Management
     Route::resource('/admin/subjects', SubjectController::class)->names([
