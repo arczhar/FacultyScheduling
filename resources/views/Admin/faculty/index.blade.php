@@ -6,18 +6,18 @@
 <div class="container mt-4">
     <h1 class="mb-4">Manage Faculty</h1>
 
-    <!-- Validation Modal -->
-    <div class="modal fade" id="validationModal" tabindex="-1" role="dialog" aria-labelledby="validationModalLabel" aria-hidden="true">
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="validationModalLabel">Message</h5>
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="successModalLabel">Success</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- Dynamic message will be displayed here -->
+                    <!-- Dynamic success or error message will be inserted here -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -101,27 +101,27 @@
 $(document).ready(function () {
     let initialFormData = $('#facultyForm').serialize();
 
+    // Function to check if form has changed
+    function isFormChanged() {
+        return $('#facultyForm').serialize() !== initialFormData;
+    }
+
     // Show/Hide Add Faculty Form
     $('#toggleFacultyFormButton').click(function () {
         const isVisible = $('#facultyForm').is(':visible');
         if (isVisible) {
             $('#facultyForm').hide();
             $('#clearFormButton').hide();
-            $(this).show(); // Show Add Faculty button
+            $(this).show();
             $('#facultyForm')[0].reset();
             $('#submitFacultyButton').text('Add Faculty').prop('disabled', true);
         } else {
             $('#facultyForm').show();
             $('#clearFormButton').show();
-            $(this).hide(); // Hide Add Faculty button
+            $(this).hide();
         }
         initialFormData = $('#facultyForm').serialize();
     });
-
-    // Function to check if form has changed
-    function isFormChanged() {
-        return $('#facultyForm').serialize() !== initialFormData;
-    }
 
     // Monitor changes in form inputs
     $('#facultyForm input, #facultyForm select').on('input', function () {
@@ -160,18 +160,28 @@ $(document).ready(function () {
                         $('#facultyTableBody').prepend(newRow);
                     }
 
-                    // Reset the form and hide it
                     $('#facultyForm')[0].reset();
                     $('#facultyForm').hide();
                     $('#clearFormButton').hide();
-                    $('#toggleFacultyFormButton').show(); // Show Add Faculty button
+                    $('#toggleFacultyFormButton').show();
                     initialFormData = $('#facultyForm').serialize();
 
-                    // Show success modal
-                    $('#validationModal .modal-body').text('Faculty saved successfully!');
-                    $('#validationModal').modal('show');
+                    $('#successModal .modal-body').text(facultyId ? 'Faculty updated successfully!' : 'Faculty added successfully!');
+                    $('#successModal').modal('show');
                 }
-            }
+            },
+            error: function (xhr) {
+                if (xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    const errorMessages = Object.values(errors).join('<br>');
+                    $('#successModal .modal-header').removeClass('bg-success').addClass('bg-danger');
+                    $('#successModal .modal-title').text('Error');
+                    $('#successModal .modal-body').html(errorMessages);
+                    $('#successModal').modal('show');
+                } else {
+                    alert('An unexpected error occurred.');
+                }
+            },
         });
     });
 
@@ -184,7 +194,6 @@ $(document).ready(function () {
             success: function (response) {
                 const faculty = response.faculty;
 
-                // Populate form fields
                 $('#faculty_id').val(faculty.id);
                 $('#id_number').val(faculty.id_number);
                 $('#first_name').val(faculty.first_name);
@@ -192,17 +201,16 @@ $(document).ready(function () {
                 $('#middle_initial').val(faculty.middle_initial);
                 $('#position').val(faculty.position);
 
-                // Show form for editing
                 $('#facultyForm').show();
                 $('#clearFormButton').show();
-                $('#toggleFacultyFormButton').hide(); // Hide Add Faculty button
+                $('#toggleFacultyFormButton').hide();
                 $('#submitFacultyButton').text('Update Faculty').prop('disabled', true);
 
                 initialFormData = $('#facultyForm').serialize();
             },
             error: function () {
-                $('#validationModal .modal-body').text('Error fetching faculty data.');
-                $('#validationModal').modal('show');
+                $('#successModal .modal-body').text('Error fetching faculty data.');
+                $('#successModal').modal('show');
             }
         });
     });
@@ -212,7 +220,7 @@ $(document).ready(function () {
         $('#facultyForm')[0].reset();
         $('#facultyForm').hide();
         $(this).hide();
-        $('#toggleFacultyFormButton').show(); // Show Add Faculty button
+        $('#toggleFacultyFormButton').show();
         $('#submitFacultyButton').text('Add Faculty').prop('disabled', true);
         initialFormData = $('#facultyForm').serialize();
     });

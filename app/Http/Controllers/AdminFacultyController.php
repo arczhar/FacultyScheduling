@@ -26,21 +26,35 @@ class AdminFacultyController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'id_number' => 'required|unique:faculty',
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'middle_initial' => 'nullable|string|max:1',
-            'position' => 'nullable|string|max:255',
-        ]);
+        try {
+            $validated = $request->validate([
+                'id_number' => 'required|unique:faculty',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'middle_initial' => 'nullable|string|max:1',
+                'position' => 'nullable|string|max:255',
+            ]);
 
-        $faculty = Faculty::create($validated);
+            $faculty = Faculty::create($validated);
 
-        return response()->json([
-            'success' => true,
-            'faculty' => $faculty,
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Faculty added successfully!',
+                'faculty' => $faculty,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->validator->errors()->first(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while adding the faculty.',
+            ], 500);
+        }
     }
+
 
 
     public function update(Request $request, $id)

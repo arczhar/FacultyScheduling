@@ -179,23 +179,31 @@ $(document).ready(function () {
         }
     });
 
-    $('#subject_code').change(function () {
-        var subjectId = $(this).val();
-        if (subjectId) {
-            $.ajax({
-                url: '/get-subject-details/' + subjectId,
-                method: 'GET',
-                success: function (response) {
-                    $('#subject_description').val(response.subject_description);
-                    $('#subject_type').val(response.type);
-                    $('#subject_units').val(response.units);
-                },
-                error: function (xhr) {
-                    console.error('Error:', xhr.responseText);
+   $('#subject_code').change(function () {
+    var subjectId = $(this).val();
+    if (subjectId) {
+        $.ajax({
+            url: '/get-subject-details/' + subjectId,
+            method: 'GET',
+            success: function (response) {
+                if (response.success) {
+                    $('#subject_description').val(response.subject.subject_description);
+                    $('#subject_type').val(response.subject.type);
+                    $('#subject_units').val(response.subject.credit_units);
+                } else {
+                    alert('Subject not found!');
                 }
-            });
-        }
-    });
+            },
+            error: function (xhr) {
+                console.error('Error:', xhr.responseText);
+            }
+        });
+    } else {
+        $('#subject_description').val('');
+        $('#subject_type').val('');
+        $('#subject_units').val('');
+    }
+});
 
     // Add Schedule Button Click
     $('#add_schedule_button').click(function (e) {
