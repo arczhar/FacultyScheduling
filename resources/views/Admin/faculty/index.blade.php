@@ -144,7 +144,7 @@ $(document).ready(function () {
                 if (response.success) {
                     const faculty = response.faculty;
 
-                    // Update existing row or prepend new row
+                    // Update or add new row in the table
                     const newRow = `
                         <tr id="facultyRow-${faculty.id}">
                             <td>${faculty.id_number}</td>
@@ -160,13 +160,19 @@ $(document).ready(function () {
                         $('#facultyTableBody').prepend(newRow);
                     }
 
+                    // Reset the form
                     $('#facultyForm')[0].reset();
                     $('#facultyForm').hide();
                     $('#clearFormButton').hide();
                     $('#toggleFacultyFormButton').show();
                     initialFormData = $('#facultyForm').serialize();
 
-                    $('#successModal .modal-body').text(facultyId ? 'Faculty updated successfully!' : 'Faculty added successfully!');
+                    // Show success modal with green header
+                    $('#successModal .modal-header')
+                        .removeClass('bg-danger')
+                        .addClass('bg-success');
+                    $('#successModal .modal-title').text('Success');
+                    $('#successModal .modal-body').text(response.message);
                     $('#successModal').modal('show');
                 }
             },
@@ -174,7 +180,11 @@ $(document).ready(function () {
                 if (xhr.status === 422) {
                     const errors = xhr.responseJSON.errors;
                     const errorMessages = Object.values(errors).join('<br>');
-                    $('#successModal .modal-header').removeClass('bg-success').addClass('bg-danger');
+
+                    // Show error modal with red header
+                    $('#successModal .modal-header')
+                        .removeClass('bg-success')
+                        .addClass('bg-danger');
                     $('#successModal .modal-title').text('Error');
                     $('#successModal .modal-body').html(errorMessages);
                     $('#successModal').modal('show');
@@ -224,6 +234,13 @@ $(document).ready(function () {
         $('#submitFacultyButton').text('Add Faculty').prop('disabled', true);
         initialFormData = $('#facultyForm').serialize();
     });
+
+    // Reset modal styles on hide
+    $('#successModal').on('hidden.bs.modal', function () {
+        $('#successModal .modal-header').removeClass('bg-danger').addClass('bg-success');
+        $('#successModal .modal-title').text('Success');
+    });
 });
+
 </script>
 @endpush

@@ -28,7 +28,7 @@ class AdminFacultyController extends Controller
     {
         try {
             $validated = $request->validate([
-                'id_number' => 'required|unique:faculty',
+                'id_number' => 'required|unique:faculty,id_number',
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'middle_initial' => 'nullable|string|max:1',
@@ -45,7 +45,7 @@ class AdminFacultyController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->validator->errors()->first(),
+                'errors' => $e->validator->errors(), // Return all validation errors
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
@@ -54,6 +54,7 @@ class AdminFacultyController extends Controller
             ], 500);
         }
     }
+
 
 
 
@@ -73,17 +74,12 @@ class AdminFacultyController extends Controller
 
         return response()->json([
             'success' => true,
+            'message' => 'Faculty updated successfully!',
             'faculty' => $faculty,
         ]);
     }
 
-    public function edit($id)
-    {
-        $faculty = Faculty::findOrFail($id); // Fetch faculty by ID
-        return response()->json($faculty);
-    }
-
-    
-    
+        
+        
 
 }
