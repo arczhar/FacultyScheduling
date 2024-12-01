@@ -1,175 +1,212 @@
 @extends('layouts.admin')
+    <style>
+    #start_time, #end_time {
+    width: 100%; /* Ensure the dropdown fills its container */
+    height: 38px; /* Match the input field height */
+    font-size: 16px; /* Match font size with other form controls */
+    padding: 6px 12px; /* Padding for better text visibility */
+    border-radius: 4px; /* Rounded corners for consistency */
+    border: 1px solid #ced4da; /* Same border style as input fields */
+    background-color: #fff; /* White background for clarity */
+}
 
-@section('title', 'Add Schedule')
+</style>
 
-@section('content')
-<div class="container mt-4">
-    <h1 class="mb-4">Add Schedule</h1>
 
-    <!-- Validation Modal -->
-    <!-- Validation Modal -->
-    <div class="modal fade" id="validationModal" tabindex="-1" role="dialog" aria-labelledby="validationModalLabel" aria-hidden="true">
+    @section('title', 'Add Schedule')
+
+    @section('content')
+    <div class="container mt-4">
+        <h1 class="mb-4">Add Schedule</h1>
+
+        <!-- Validation Modal -->
+        <!-- Validation Modal -->
+        <div class="modal fade" id="validationModal" tabindex="-1" role="dialog" aria-labelledby="validationModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="validationModalLabel">Message</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Dynamic message will be displayed here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="validationModalLabel">Message</h5>
+                    <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Delete</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- Dynamic message will be displayed here -->
+                    Are you sure you want to delete this schedule?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteButton">Delete</button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Delete</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+
+
+        <form action="{{ route('admin.schedules.store') }}" method="POST" id="addScheduleForm">
+        @csrf
+            <!-- Faculty Selection -->
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="faculty_id">Faculty</label>
+                    <select class="form-control" id="faculty_id" name="faculty_id" required>
+                        <option value="">Select Faculty</option>
+                        @foreach($faculties as $faculty)
+                            <option value="{{ $faculty->id }}">{{ $faculty->first_name }} {{ $faculty->last_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="position">Position</label>
+                    <input type="text" class="form-control" id="position" name="position" readonly>
+                </div>
             </div>
-            <div class="modal-body">
-                Are you sure you want to delete this schedule?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Delete</button>
-            </div>
+
+        <!-- Semester and School Year -->
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="semester">Semester</label>
+                    <select class="form-control" id="semester" name="semester" required>
+                        <option value="1st Semester" {{ old('semester') == '1st Semester' ? 'selected' : '' }}>1st Semester</option>
+                        <option value="2nd Semester" {{ old('semester') == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option>
+                        <option value="Summer" {{ old('semester') == 'Summer' ? 'selected' : '' }}>Summer</option>
+                    </select>
+                </div>
+        <div class="form-group col-md-6">
+            <label for="school_year">School Year</label>
+            <input type="text" class="form-control" id="school_year" name="school_year" value="2024-2025" readonly>
         </div>
     </div>
-</div>
 
+            <!-- Faculty Schedule Table -->
+            <h6 class="mt-4">Faculty's Schedules</h6>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Subject Code</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Units</th>
+                        <th>Day</th>
+                        <th>Room</th>
+                        <th>Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="schedule_table_body">
+                    <!-- Auto-filled rows will appear here -->
+                </tbody>
+            </table>
 
-    <form action="{{ route('admin.schedules.store') }}" method="POST" id="addScheduleForm">
-    @csrf
-        <!-- Faculty Selection -->
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                <label for="faculty_id">Faculty</label>
-                <select class="form-control" id="faculty_id" name="faculty_id" required>
-                    <option value="">Select Faculty</option>
-                    @foreach($faculties as $faculty)
-                        <option value="{{ $faculty->id }}">{{ $faculty->first_name }} {{ $faculty->last_name }}</option>
-                    @endforeach
-                </select>
+            <!-- Subject Selection -->
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="subject_code">Subject Code</label>
+                    <select class="form-control" id="subject_code" name="subject_id" required>
+                        <option value="">Select Subject</option>
+                        @foreach($subjects as $subject)
+                            <option value="{{ $subject->id }}">{{ $subject->subject_code }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="subject_description">Subject Description</label>
+                    <input type="text" class="form-control" id="subject_description" name="subject_description" readonly>
+                </div>
             </div>
-            <div class="form-group col-md-6">
-                <label for="position">Position</label>
-                <input type="text" class="form-control" id="position" name="position" readonly>
-            </div>
-        </div>
 
-       <!-- Semester and School Year -->
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                <label for="semester">Semester</label>
-                <select class="form-control" id="semester" name="semester" required>
-                    <option value="1st Semester" {{ old('semester') == '1st Semester' ? 'selected' : '' }}>1st Semester</option>
-                    <option value="2nd Semester" {{ old('semester') == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option>
-                    <option value="Summer" {{ old('semester') == 'Summer' ? 'selected' : '' }}>Summer</option>
-                </select>
+            <!-- Additional Subject Details -->
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="subject_type">Subject Type</label>
+                    <input type="text" class="form-control" id="subject_type" name="subject_type" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="subject_units">Subject Units</label>
+                    <input type="text" class="form-control" id="subject_units" name="subject_units" readonly>
+                </div>
             </div>
-    <div class="form-group col-md-6">
-        <label for="school_year">School Year</label>
-        <input type="text" class="form-control" id="school_year" name="school_year" value="2024-2025" readonly>
+
+            <!-- Schedule Details -->
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="day">Day</label>
+                    <select class="form-control" id="day" name="day" required>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                        <label for="start_time">Start Time</label>
+                        <select id="start_time" name="start_time" class="form-control" required>
+                            <option value="">Select Start Time</option>
+                            <option value="08:00">08:00</option>
+                            <option value="08:30">08:30</option>
+                            <option value="09:00">09:00</option>
+                            <option value="09:30">09:30</option>
+                            <option value="10:00">10:00</option>
+                            <option value="10:30">10:30</option>
+                            <option value="11:00">11:00</option>
+                            <option value="11:30">11:30</option>
+                            <option value="12:00">12:00</option>
+                            <option value="12:30">12:30</option>
+                            <option value="13:00">13:00</option>
+                            <option value="13:30">13:30</option>
+                            <option value="14:00">14:00</option>
+                            <option value="14:30">14:30</option>
+
+                            <!-- Add other time intervals -->
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="end_time">End Time</label>
+                        <select id="end_time" name="end_time" class="form-control" required>
+                            <option value="">Select End Time</option>
+                            <!-- Options dynamically populated -->
+                        </select>
+                    </div>
+
+                <div class="form-group col-md-3">
+                    <label for="room_id">Room</label>
+                    <select class="form-control" id="room_id" name="room_id" required>
+                        <option value="">Select Room</option>
+                        @foreach($rooms as $room)
+                            <option value="{{ $room->id }}">{{ $room->room_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+        
+            <button type="button" id="add_schedule_button" class="btn btn-primary">Add Schedule</button>
+            <button type="button" id="update_schedule_button" class="btn btn-warning" style="display: none;">Update Schedule</button>
+
+            <a href="{{ route('admin.schedules.index') }}" class="btn btn-secondary">Back to List</a>
+
+        </form>
     </div>
-</div>
-
-        <!-- Faculty Schedule Table -->
-        <h6 class="mt-4">Faculty's Schedules</h6>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Subject Code</th>
-                    <th>Description</th>
-                    <th>Type</th>
-                    <th>Units</th>
-                    <th>Day</th>
-                    <th>Room</th>
-                    <th>Time</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="schedule_table_body">
-                <!-- Auto-filled rows will appear here -->
-            </tbody>
-        </table>
-
-        <!-- Subject Selection -->
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                <label for="subject_code">Subject Code</label>
-                <select class="form-control" id="subject_code" name="subject_id" required>
-                    <option value="">Select Subject</option>
-                    @foreach($subjects as $subject)
-                        <option value="{{ $subject->id }}">{{ $subject->subject_code }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group col-md-6">
-                <label for="subject_description">Subject Description</label>
-                <input type="text" class="form-control" id="subject_description" name="subject_description" readonly>
-            </div>
-        </div>
-
-        <!-- Additional Subject Details -->
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                <label for="subject_type">Subject Type</label>
-                <input type="text" class="form-control" id="subject_type" name="subject_type" readonly>
-            </div>
-            <div class="form-group col-md-6">
-                <label for="subject_units">Subject Units</label>
-                <input type="text" class="form-control" id="subject_units" name="subject_units" readonly>
-            </div>
-        </div>
-
-        <!-- Schedule Details -->
-        <div class="form-row">
-            <div class="form-group col-md-3">
-                <label for="day">Day</label>
-                <select class="form-control" id="day" name="day" required>
-                    <option value="Monday">Monday</option>
-                    <option value="Tuesday">Tuesday</option>
-                    <option value="Wednesday">Wednesday</option>
-                    <option value="Thursday">Thursday</option>
-                    <option value="Friday">Friday</option>
-                </select>
-            </div>
-            <div class="form-group col-md-3">
-                <label for="start_time">Start Time</label>
-                <input type="time" class="form-control" id="start_time" name="start_time" required>
-            </div>
-            <div class="form-group col-md-3">
-                <label for="end_time">End Time</label>
-                <input type="time" class="form-control" id="end_time" name="end_time" required>
-            </div>
-            <div class="form-group col-md-3">
-                <label for="room_id">Room</label>
-                <select class="form-control" id="room_id" name="room_id" required>
-                    <option value="">Select Room</option>
-                    @foreach($rooms as $room)
-                        <option value="{{ $room->id }}">{{ $room->room_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-
-        <!-- Buttons -->
-     
-        <button type="button" id="add_schedule_button" class="btn btn-primary">Add Schedule</button>
-        <a href="{{ route('admin.schedules.index') }}" class="btn btn-secondary">Back to List</a>
-
-    </form>
-</div>
 @endsection
 
 @push('scripts')
@@ -178,11 +215,12 @@ $(document).ready(function () {
     // Set up CSRF token for all AJAX requests
     $.ajaxSetup({
         headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+        },
     });
 
-    let scheduleIdToDelete;
+    let scheduleIdToDelete = null;
+    let scheduleIdToEdit = null;
 
     // Handle delete button click
     $(document).on('click', '.delete-schedule', function () {
@@ -198,59 +236,50 @@ $(document).ready(function () {
                 method: 'DELETE',
                 success: function (response) {
                     if (response.success) {
-                        // Remove the deleted row
                         $(`#schedule-row-${scheduleIdToDelete}`).remove();
-
-                        // Hide the delete confirmation modal
                         $('#deleteConfirmationModal').modal('hide');
-
-                        // Show success message in validation modal
-                        $('#validationModal .modal-body').text(response.message);
-                        $('#validationModal').modal('show');
+                        showModal('Success', response.message);
                     } else {
-                        // Show error message in validation modal
-                        $('#validationModal .modal-body').text(response.message);
-                        $('#validationModal').modal('show');
+                        showModal('Error', response.message);
                     }
                 },
                 error: function (xhr) {
-                    console.error('Error response:', xhr.responseText);
-                    // Show error message in validation modal
-                    $('#validationModal .modal-body').text('An error occurred while deleting the schedule.');
-                    $('#validationModal').modal('show');
-                }
+                    console.error('Error deleting schedule:', xhr.responseText);
+                    showModal('Error', 'An error occurred while deleting the schedule.');
+                },
             });
         }
     });
 
-
     // Handle faculty selection change
     $('#faculty_id').change(function () {
-        var facultyId = $(this).val();
+        const facultyId = $(this).val();
         if (facultyId) {
             $.ajax({
-                url: '/get-faculty-details/' + facultyId,
+                url: `/get-faculty-details/${facultyId}`,
                 method: 'GET',
                 success: function (response) {
-                    $('#position').val(response.position);
-                    populateScheduleTable(response.schedules);
+                    if (response) {
+                        $('#position').val(response.position);
+                        populateScheduleTable(response.schedules);
+                    }
                 },
                 error: function (xhr) {
-                    console.error('Error:', xhr.responseText);
-                }
+                    console.error('Error fetching faculty details:', xhr.responseText);
+                },
             });
         } else {
             $('#position').val('');
-            $('#schedule_table_body').html('');
+            $('#schedule_table_body').html('<tr><td colspan="8" class="text-center">No schedule available</td></tr>');
         }
     });
 
     // Handle subject selection change
     $('#subject_code').change(function () {
-        var subjectId = $(this).val();
+        const subjectId = $(this).val();
         if (subjectId) {
             $.ajax({
-                url: '/get-subject-details/' + subjectId,
+                url: `/get-subject-details/${subjectId}`,
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {
@@ -262,80 +291,139 @@ $(document).ready(function () {
                     }
                 },
                 error: function (xhr) {
-                    console.error('Error:', xhr.responseText);
-                }
+                    console.error('Error fetching subject details:', xhr.responseText);
+                },
             });
         } else {
-            $('#subject_description').val('');
-            $('#subject_type').val('');
-            $('#subject_units').val('');
+            resetSubjectFields();
         }
     });
 
     // Handle add schedule button click
     $('#add_schedule_button').click(function (e) {
         e.preventDefault();
+        const facultyId = $('#faculty_id').val();
+        const subjectId = $('#subject_code').val();
+        const roomId = $('#room_id').val();
+
+        if (!facultyId || !subjectId || !roomId) {
+            showModal('Error', 'All fields are required.');
+            return;
+        }
+
+        // Proceed with AJAX if validation passes
+            $.ajax({
+                url: '/check-schedule-conflict',
+                method: 'POST',
+                data: $('#addScheduleForm').serialize(),
+                success: function (response) {
+                    console.log('Response:', response);
+                    if (response.conflict) {
+                        showModal('Conflict', response.message);
+                    } else {
+                        appendScheduleRow(response.schedule);
+                        resetScheduleFields();
+                        showModal('Success', response.message);
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Error:', xhr.responseText);
+                    showModal('Error', 'An unexpected error occurred.');
+                },
+            });
+        });
+
+
+        // Handle edit button click
+        $(document).on('click', '.edit-schedule', function () {
+            const scheduleId = $(this).data('id'); // Retrieve schedule ID from the button
+            console.log('Schedule ID:', scheduleId);
+
+            if (!scheduleId) {
+                alert('Schedule ID is undefined or missing!');
+                return;
+            }
+
+            // Fetch schedule details
+            $.ajax({
+                url: `/admin/schedules/${scheduleId}`,
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        const schedule = response.schedule;
+
+                        // Populate form fields
+                        $('#subject_code').val(schedule.subject_id).change();
+                        $('#subject_description').val(schedule.subject_description);
+                        $('#subject_type').val(schedule.type);
+                        $('#subject_units').val(schedule.units);
+                        $('#day').val(schedule.day);
+                        $('#start_time').val(schedule.start_time);
+                        $('#end_time').val(schedule.end_time);
+                        $('#room_id').val(schedule.room_id);
+
+                        // Attach schedule ID to the form for updates
+                        $('#addScheduleForm').data('schedule-id', scheduleId);
+
+                        // Change button text to indicate update mode
+                        $('#add_schedule_button').text('Update Schedule').attr('id', 'update_schedule_button');
+                    } else {
+                        alert('Failed to fetch schedule details.');
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Error fetching schedule details:', xhr.responseText);
+                    alert('Error fetching schedule details. Please try again.');
+                },
+            });
+        });
+
+
+
+    // Handle update schedule button click
+    $(document).on('click', '#update_schedule_button', function (e) {
+        e.preventDefault();
+
+        const scheduleId = $('#addScheduleForm').data('schedule-id'); // Retrieve the schedule ID stored in the form
+
+        if (!scheduleId) {
+            alert('Schedule ID is missing!');
+            return;
+        }
 
         $.ajax({
-            url: '/check-schedule-conflict',
-            method: 'POST',
+            url: `/admin/schedules/${scheduleId}`, // Use the correct route with the schedule ID
+            method: 'PUT', // Ensure the method is PUT for updates
             data: $('#addScheduleForm').serialize(),
             success: function (response) {
-                if (response.conflict) {
-                    // Show validation modal
-                    $('#validationModal .modal-body').text(response.message);
-                    $('#validationModal').modal('show');
+                if (response.success) {
+                    // Update the row in the schedule table dynamically
+                    updateScheduleRow(scheduleId, response.schedule);
+
+                    // Reset the form and button state
+                    resetScheduleFields();
+                    $('#update_schedule_button').text('Add Schedule').attr('id', 'add_schedule_button');
+                    $('#addScheduleForm').removeData('schedule-id'); // Remove schedule ID from form
+                    showModal('Success', response.message);
                 } else {
-                    // Add new schedule dynamically
-                    var newRow = `
-                        <tr id="schedule-row-${response.schedule.id}">
-                            <td>${response.schedule.subject_code}</td>
-                            <td>${response.schedule.subject_description}</td>
-                            <td>${response.schedule.type}</td>
-                            <td>${response.schedule.units}</td>
-                            <td>${response.schedule.day}</td>
-                            <td>${response.schedule.room}</td>
-                            <td>${response.schedule.start_time} - ${response.schedule.end_time}</td>
-                            <td>
-                                <!-- Delete Button -->
-                                <button class="btn btn-danger btn-sm delete-schedule" data-id="${response.schedule.id}">Delete</button>
-                            </td>
-                        </tr>`;
-                    $('#schedule_table_body').append(newRow);
-
-                    // Reset subject-related fields
-                    $('#subject_code').val('');
-                    $('#subject_description').val('');
-                    $('#subject_type').val('');
-                    $('#subject_units').val('');
-                    $('#day').val('Monday');
-                    $('#start_time').val('');
-                    $('#end_time').val('');
-                    $('#room_id').val('');
-
-                    // Show success modal
-                    $('#validationModal .modal-body').text('Schedule added successfully!');
-                    $('#validationModal').modal('show');
+                    showModal('Error', response.message);
                 }
             },
             error: function (xhr) {
-                console.error('Error:', xhr.responseText);
-            }
+                console.error('Error updating schedule:', xhr.responseText);
+                showModal('Error', 'An error occurred while updating the schedule.');
+            },
         });
     });
-    
-    // Populate faculty schedule table
+
+
     // Populate faculty schedule table
     function populateScheduleTable(schedules) {
-        var html = '';
+        let html = '';
         if (schedules.length === 0) {
-            // If no schedules, display "No schedule"
-            html = `
-                <tr>
-                    <td colspan="8" class="text-center">No schedule available</td>
-                </tr>`;
+            html = `<tr><td colspan="8" class="text-center">No schedule available</td></tr>`;
         } else {
-            schedules.forEach(function (schedule) {
+            schedules.forEach(schedule => {
                 html += `
                     <tr id="schedule-row-${schedule.id}">
                         <td>${schedule.subject_code}</td>
@@ -346,7 +434,7 @@ $(document).ready(function () {
                         <td>${schedule.room}</td>
                         <td>${schedule.start_time} - ${schedule.end_time}</td>
                         <td>
-                            <!-- Delete Button -->
+                            <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
                             <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
                         </td>
                     </tr>`;
@@ -354,7 +442,108 @@ $(document).ready(function () {
         }
         $('#schedule_table_body').html(html);
     }
-});
-</script>
 
+    // Populate schedule form for editing
+    function populateScheduleForm(schedule) {
+        $('#subject_code').val(schedule.subject_id).change(); // Populate subject dropdown
+        $('#subject_description').val(schedule.subject_description); // Populate description
+        $('#subject_type').val(schedule.type); // Populate type
+        $('#subject_units').val(schedule.units); // Populate units
+        $('#day').val(schedule.day); // Populate day
+
+        const startTimeDropdown = $('#start_time');
+        if (!startTimeDropdown.find(`option[value="${schedule.start_time}"]`).length) {
+            startTimeDropdown.append(`<option value="${schedule.start_time}">${schedule.start_time}</option>`);
+        }
+        startTimeDropdown.val(schedule.start_time);
+
+        const endTimeDropdown = $('#end_time');
+        if (!endTimeDropdown.find(`option[value="${schedule.end_time}"]`).length) {
+            endTimeDropdown.append(`<option value="${schedule.end_time}">${schedule.end_time}</option>`);
+        }
+        endTimeDropdown.val(schedule.end_time);
+
+        $('#room_id').val(schedule.room_id); // Populate room
+    }
+
+    // Reset form fields
+    function resetScheduleFields() {
+        $('#subject_code').val('');
+        $('#subject_description').val('');
+        $('#subject_type').val('');
+        $('#subject_units').val('');
+        $('#day').val('Monday');
+        $('#start_time').val('');
+        $('#end_time').val('');
+        $('#room_id').val('');
+    }
+
+    // Show modal with message
+    function showModal(title, message) {
+        $('#validationModal .modal-title').text(title);
+        $('#validationModal .modal-body').text(message);
+        $('#validationModal').modal('show');
+    }
+
+    // Dynamic end time options based on start time
+    // Populate dynamic end times based on selected start time
+    $('#start_time').change(function () {
+    const startTime = $(this).val();
+    console.log('Selected Start Time:', startTime); // Debugging line
+
+    const endTimeField = $('#end_time');
+    endTimeField.find('option').remove();
+
+    if (startTime) {
+        const [startHours, startMinutes] = startTime.split(':').map(Number);
+        console.log('Parsed Start Time:', startHours, startMinutes); // Debugging line
+
+        const startTotalMinutes = startHours * 60 + startMinutes;
+        for (let hours = 0; hours < 24; hours++) {
+            for (let minutes = 0; minutes < 60; minutes += 30) {
+                const totalMinutes = hours * 60 + minutes;
+                if (totalMinutes > startTotalMinutes) {
+                    const formattedTime = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+                    console.log('Adding End Time:', formattedTime); // Debugging line
+                    endTimeField.append(`<option value="${formattedTime}">${formattedTime}</option>`);
+                }
+            }
+        }
+
+        endTimeField.prop('disabled', false);
+    } else {
+        console.log('No Start Time Selected'); // Debugging line
+        endTimeField.prop('disabled', true);
+    }
+});
+
+    // Disable end time initially
+    $('#end_time').prop('disabled', true);
+
+    function appendScheduleRow(schedule) {
+    if (!schedule) {
+        console.error('Schedule object is undefined:', schedule);
+        return;
+    }
+
+    const row = `
+        <tr id="schedule-row-${schedule.id}">
+            <td>${schedule.subject_code || 'N/A'}</td>
+            <td>${schedule.subject_description || 'N/A'}</td>
+            <td>${schedule.type || 'N/A'}</td>
+            <td>${schedule.units || 'N/A'}</td>
+            <td>${schedule.day || 'N/A'}</td>
+            <td>${schedule.room || 'N/A'}</td>
+            <td>${schedule.start_time || ''} - ${schedule.end_time || ''}</td>
+            <td>
+                <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
+                <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
+            </td>
+        </tr>`;
+    $('#schedule_table_body').append(row); // Dynamically adds the new row to the table
+}
+
+});
+
+</script>
 @endpush

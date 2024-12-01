@@ -12,7 +12,17 @@
     <!-- FullCalendar CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.css" rel="stylesheet" />
 
+    <!-- jQuery (Load First) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Check for jQuery -->
+    <script>
+        if (typeof $ === 'undefined') {
+            console.error('jQuery ($) is not defined. Ensure it is loaded properly.');
+        }
+    </script>
+
+    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
@@ -93,12 +103,21 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Popper.js (Load Second) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+
+    <!-- Bootstrap JS (Load Third) -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
     <!-- FullCalendar Global JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.js"></script>
+
+    <!-- Check for jQuery Conflicts -->
+    <script>
+        if (typeof $ === 'undefined') {
+            console.error('jQuery ($) is not defined after loading all scripts. Check for library conflicts.');
+        }
+    </script>
 
     @stack('scripts')
 </body>

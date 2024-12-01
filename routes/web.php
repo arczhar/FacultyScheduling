@@ -23,7 +23,6 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
         'destroy' => 'admin.faculty.destroy',
     ]);
     Route::get('/admin/faculty/{id}', [AdminFacultyController::class, 'show'])->name('admin.faculty.show');
-
     Route::get('/admin/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('admin.faculty.schedules');
 
     // Subject Management
@@ -60,18 +59,23 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
         'update' => 'admin.schedules.update',
         'destroy' => 'admin.schedules.destroy',
     ]);
+
+    Route::get('/admin/schedules/{id}', [ScheduleController::class, 'show'])->name('admin.schedules.show');
+    Route::put('/admin/schedules/{id}', [ScheduleController::class, 'update'])->name('admin.schedules.update');
+    Route::get('/admin/schedules/{id}/edit', [ScheduleController::class, 'edit'])->name('admin.schedules.edit');
 });
 
 // Program Chair Routes
-Route::middleware(['auth:web', 'role:Program Chair'])->group(function () {
+Route::middleware(['auth:web', 'role:Program Chair,Admin'])->group(function () {
     Route::get('/program-chair/dashboard', [AdminController::class, 'programChairDashboard'])->name('programchair.dashboard');
     Route::get('/program-chair/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('programchair.faculty.schedules');
-    Route::resource('/program-chair/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'edit', 'update'])->names([
+    Route::resource('/program-chair/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])->names([
         'index' => 'programchair.schedules.index',
         'create' => 'programchair.schedules.create',
         'store' => 'programchair.schedules.store',
         'edit' => 'programchair.schedules.edit',
         'update' => 'programchair.schedules.update',
+        'destroy' => 'programchair.schedules.destroy',
     ]);
 });
 
@@ -89,6 +93,8 @@ Route::middleware(['auth:faculty'])->group(function () {
 Route::get('/get-faculty-details/{facultyId}', [ScheduleController::class, 'getFacultyDetails'])->name('get-faculty-details');
 Route::get('/get-subject-details/{id}', [SubjectController::class, 'getSubjectDetails'])->name('get-subject-details');
 Route::post('/check-schedule-conflict', [ScheduleController::class, 'checkAndSaveSchedule'])->name('check-schedule-conflict');
+Route::get('/admin/schedules/{id}', [ScheduleController::class, 'show']);
+
 
 // Miscellaneous Routes
 Route::get('/simple-page', fn() => view('simple'));
