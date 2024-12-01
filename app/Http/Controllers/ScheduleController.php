@@ -125,7 +125,7 @@ class ScheduleController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'faculty_id' => 'required|exists:faculties,id',
+            'faculty_id' => 'required|exists:faculty,id',
             'subject_id' => 'required|exists:subjects,id',
             'room_id' => 'required|exists:rooms,id',
             'start_time' => 'required|date_format:H:i',

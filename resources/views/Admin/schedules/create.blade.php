@@ -220,7 +220,6 @@ $(document).ready(function () {
     });
 
     let scheduleIdToDelete = null;
-    let scheduleIdToEdit = null;
 
     // Handle delete button click
     $(document).on('click', '.delete-schedule', function () {
@@ -299,92 +298,55 @@ $(document).ready(function () {
         }
     });
 
-    // Handle add schedule button click
-    $('#add_schedule_button').click(function (e) {
+    // Handle Add/Update Schedule button click
+    $(document).on('click', '#add_schedule_button, #update_schedule_button', function (e) {
         e.preventDefault();
-        const facultyId = $('#faculty_id').val();
-        const subjectId = $('#subject_code').val();
-        const roomId = $('#room_id').val();
 
-        if (!facultyId || !subjectId || !roomId) {
-            showModal('Error', 'All fields are required.');
+        const buttonId = $(this).attr('id');
+        const isUpdate = buttonId === 'update_schedule_button';
+        const scheduleId = $('#addScheduleForm').data('schedule-id'); // Retrieve schedule ID for updates
+
+        if (isUpdate && !scheduleId) {
+            alert('Schedule ID is missing for update!');
             return;
         }
 
-        // Proceed with AJAX if validation passes
-            $.ajax({
-                url: '/check-schedule-conflict',
-                method: 'POST',
-                data: $('#addScheduleForm').serialize(),
-                success: function (response) {
-                    console.log('Response:', response);
-                    if (response.conflict) {
-                        showModal('Conflict', response.message);
+        const ajaxOptions = {
+            url: isUpdate ? `/admin/schedules/${scheduleId}` : '/admin/schedules',
+            method: isUpdate ? 'PUT' : 'POST',
+            data: $('#addScheduleForm').serialize(),
+            success: function (response) {
+                if (response.success) {
+                    if (isUpdate) {
+                        updateScheduleRow(scheduleId, response.schedule); // Update row
                     } else {
-                        appendScheduleRow(response.schedule);
-                        resetScheduleFields();
-                        showModal('Success', response.message);
+                        appendScheduleRow(response.schedule); // Add new row
                     }
-                },
-                error: function (xhr) {
-                    console.error('Error:', xhr.responseText);
-                    showModal('Error', 'An unexpected error occurred.');
-                },
-            });
-        });
+                    resetScheduleFields();
+                    showModal('Success', response.message);
 
-
-        // Handle edit button click
-        $(document).on('click', '.edit-schedule', function () {
-            const scheduleId = $(this).data('id'); // Retrieve schedule ID from the button
-            console.log('Schedule ID:', scheduleId);
-
-            if (!scheduleId) {
-                alert('Schedule ID is undefined or missing!');
-                return;
-            }
-
-            // Fetch schedule details
-            $.ajax({
-                url: `/admin/schedules/${scheduleId}`,
-                method: 'GET',
-                success: function (response) {
-                    if (response.success) {
-                        const schedule = response.schedule;
-
-                        // Populate form fields
-                        $('#subject_code').val(schedule.subject_id).change();
-                        $('#subject_description').val(schedule.subject_description);
-                        $('#subject_type').val(schedule.type);
-                        $('#subject_units').val(schedule.units);
-                        $('#day').val(schedule.day);
-                        $('#start_time').val(schedule.start_time);
-                        $('#end_time').val(schedule.end_time);
-                        $('#room_id').val(schedule.room_id);
-
-                        // Attach schedule ID to the form for updates
-                        $('#addScheduleForm').data('schedule-id', scheduleId);
-
-                        // Change button text to indicate update mode
-                        $('#add_schedule_button').text('Update Schedule').attr('id', 'update_schedule_button');
-                    } else {
-                        alert('Failed to fetch schedule details.');
+                    if (isUpdate) {
+                        $('#update_schedule_button').text('Add Schedule').attr('id', 'add_schedule_button');
+                        $('#addScheduleForm').removeData('schedule-id'); // Remove schedule ID
                     }
-                },
-                error: function (xhr) {
-                    console.error('Error fetching schedule details:', xhr.responseText);
-                    alert('Error fetching schedule details. Please try again.');
-                },
-            });
-        });
+                } else {
+                    showModal('Error', response.message);
+                }
+            },
+            error: function (xhr) {
+                console.error('Error:', xhr.responseText);
+                showModal('Error', 'An error occurred while processing the schedule.');
+            },
+        };
 
+        // Execute AJAX request
+        $.ajax(ajaxOptions);
+    });
 
-
-    // Handle update schedule button click
-    $(document).on('click', '#update_schedule_button', function (e) {
-        e.preventDefault();
-
-        const scheduleId = $('#addScheduleForm').data('schedule-id'); // Retrieve the schedule ID stored in the form
+    // Handle edit button click
+    $(document).on('click', '.edit-schedule', function () {
+        const scheduleId = $(this).data('id'); // Retrieve schedule ID
+        console.log('Schedule ID:', scheduleId);
 
         if (!scheduleId) {
             alert('Schedule ID is missing!');
@@ -392,30 +354,37 @@ $(document).ready(function () {
         }
 
         $.ajax({
-            url: `/admin/schedules/${scheduleId}`, // Use the correct route with the schedule ID
-            method: 'PUT', // Ensure the method is PUT for updates
-            data: $('#addScheduleForm').serialize(),
+            url: `/admin/schedules/${scheduleId}`,
+            method: 'GET',
             success: function (response) {
                 if (response.success) {
-                    // Update the row in the schedule table dynamically
-                    updateScheduleRow(scheduleId, response.schedule);
+                    const schedule = response.schedule;
 
-                    // Reset the form and button state
-                    resetScheduleFields();
-                    $('#update_schedule_button').text('Add Schedule').attr('id', 'add_schedule_button');
-                    $('#addScheduleForm').removeData('schedule-id'); // Remove schedule ID from form
-                    showModal('Success', response.message);
+                    // Populate form fields
+                    $('#subject_code').val(schedule.subject_id).change();
+                    $('#subject_description').val(schedule.subject_description);
+                    $('#subject_type').val(schedule.type);
+                    $('#subject_units').val(schedule.units);
+                    $('#day').val(schedule.day);
+                    $('#start_time').val(schedule.start_time);
+                    $('#end_time').val(schedule.end_time);
+                    $('#room_id').val(schedule.room_id);
+
+                    // Attach schedule ID for updates
+                    $('#addScheduleForm').data('schedule-id', scheduleId);
+
+                    // Switch to update mode
+                    $('#add_schedule_button').text('Update Schedule').attr('id', 'update_schedule_button');
                 } else {
-                    showModal('Error', response.message);
+                    alert('Failed to fetch schedule details.');
                 }
             },
             error: function (xhr) {
-                console.error('Error updating schedule:', xhr.responseText);
-                showModal('Error', 'An error occurred while updating the schedule.');
+                console.error('Error fetching schedule details:', xhr.responseText);
+                alert('An error occurred while fetching schedule details.');
             },
         });
     });
-
 
     // Populate faculty schedule table
     function populateScheduleTable(schedules) {
@@ -443,29 +412,6 @@ $(document).ready(function () {
         $('#schedule_table_body').html(html);
     }
 
-    // Populate schedule form for editing
-    function populateScheduleForm(schedule) {
-        $('#subject_code').val(schedule.subject_id).change(); // Populate subject dropdown
-        $('#subject_description').val(schedule.subject_description); // Populate description
-        $('#subject_type').val(schedule.type); // Populate type
-        $('#subject_units').val(schedule.units); // Populate units
-        $('#day').val(schedule.day); // Populate day
-
-        const startTimeDropdown = $('#start_time');
-        if (!startTimeDropdown.find(`option[value="${schedule.start_time}"]`).length) {
-            startTimeDropdown.append(`<option value="${schedule.start_time}">${schedule.start_time}</option>`);
-        }
-        startTimeDropdown.val(schedule.start_time);
-
-        const endTimeDropdown = $('#end_time');
-        if (!endTimeDropdown.find(`option[value="${schedule.end_time}"]`).length) {
-            endTimeDropdown.append(`<option value="${schedule.end_time}">${schedule.end_time}</option>`);
-        }
-        endTimeDropdown.val(schedule.end_time);
-
-        $('#room_id').val(schedule.room_id); // Populate room
-    }
-
     // Reset form fields
     function resetScheduleFields() {
         $('#subject_code').val('');
@@ -486,63 +432,71 @@ $(document).ready(function () {
     }
 
     // Dynamic end time options based on start time
-    // Populate dynamic end times based on selected start time
     $('#start_time').change(function () {
-    const startTime = $(this).val();
-    console.log('Selected Start Time:', startTime); // Debugging line
+        const startTime = $(this).val();
+        console.log('Selected Start Time:', startTime);
 
-    const endTimeField = $('#end_time');
-    endTimeField.find('option').remove();
+        const endTimeField = $('#end_time');
+        endTimeField.find('option').remove();
 
-    if (startTime) {
-        const [startHours, startMinutes] = startTime.split(':').map(Number);
-        console.log('Parsed Start Time:', startHours, startMinutes); // Debugging line
+        if (startTime) {
+            const [startHours, startMinutes] = startTime.split(':').map(Number);
 
-        const startTotalMinutes = startHours * 60 + startMinutes;
-        for (let hours = 0; hours < 24; hours++) {
-            for (let minutes = 0; minutes < 60; minutes += 30) {
-                const totalMinutes = hours * 60 + minutes;
-                if (totalMinutes > startTotalMinutes) {
-                    const formattedTime = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-                    console.log('Adding End Time:', formattedTime); // Debugging line
-                    endTimeField.append(`<option value="${formattedTime}">${formattedTime}</option>`);
+            const startTotalMinutes = startHours * 60 + startMinutes;
+            for (let hours = 0; hours < 24; hours++) {
+                for (let minutes = 0; minutes < 60; minutes += 30) {
+                    const totalMinutes = hours * 60 + minutes;
+                    if (totalMinutes > startTotalMinutes) {
+                        const formattedTime = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+                        endTimeField.append(`<option value="${formattedTime}">${formattedTime}</option>`);
+                    }
                 }
             }
-        }
 
-        endTimeField.prop('disabled', false);
-    } else {
-        console.log('No Start Time Selected'); // Debugging line
-        endTimeField.prop('disabled', true);
-    }
-});
+            endTimeField.prop('disabled', false);
+        } else {
+            endTimeField.prop('disabled', true);
+        }
+    });
 
     // Disable end time initially
     $('#end_time').prop('disabled', true);
 
     function appendScheduleRow(schedule) {
-    if (!schedule) {
-        console.error('Schedule object is undefined:', schedule);
-        return;
+        const row = `
+            <tr id="schedule-row-${schedule.id}">
+                <td>${schedule.subject_code || 'N/A'}</td>
+                <td>${schedule.subject_description || 'N/A'}</td>
+                <td>${schedule.type || 'N/A'}</td>
+                <td>${schedule.units || 'N/A'}</td>
+                <td>${schedule.day || 'N/A'}</td>
+                <td>${schedule.room || 'N/A'}</td>
+                <td>${schedule.start_time || ''} - ${schedule.end_time || ''}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
+                    <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
+                </td>
+            </tr>`;
+        $('#schedule_table_body').append(row);
     }
 
-    const row = `
-        <tr id="schedule-row-${schedule.id}">
-            <td>${schedule.subject_code || 'N/A'}</td>
-            <td>${schedule.subject_description || 'N/A'}</td>
-            <td>${schedule.type || 'N/A'}</td>
-            <td>${schedule.units || 'N/A'}</td>
-            <td>${schedule.day || 'N/A'}</td>
-            <td>${schedule.room || 'N/A'}</td>
-            <td>${schedule.start_time || ''} - ${schedule.end_time || ''}</td>
-            <td>
-                <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
-                <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
-            </td>
-        </tr>`;
-    $('#schedule_table_body').append(row); // Dynamically adds the new row to the table
-}
-
+    function updateScheduleRow(scheduleId, schedule) {
+        const row = `
+            <tr id="schedule-row-${scheduleId}">
+                <td>${schedule.subject_code || 'N/A'}</td>
+                <td>${schedule.subject_description || 'N/A'}</td>
+                <td>${schedule.type || 'N/A'}</td>
+                <td>${schedule.units || 'N/A'}</td>
+                <td>${schedule.day || 'N/A'}</td>
+                <td>${schedule.room || 'N/A'}</td>
+                <td>${schedule.start_time || ''} - ${schedule.end_time || ''}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm edit-schedule" data-id="${scheduleId}">Edit</button>
+                    <button class="btn btn-danger btn-sm delete-schedule" data-id="${scheduleId}">Delete</button>
+                </td>
+            </tr>`;
+        $(`#schedule-row-${scheduleId}`).replaceWith(row);
+    }
 });
 
 </script>
