@@ -29,7 +29,7 @@
                     <td>
                         @if(Auth::user()->role === 'admin')
                             <a href="{{ route('admin.faculty.schedules', $faculty->id) }}" class="btn btn-info btn-sm">View Schedules</a>
-                        @elseif(Auth::user()->role === 'Program Chair')
+                        @elseif(Auth::user()->role === 'program chair')
                             <a href="{{ route('programchair.faculty.schedules', $faculty->id) }}" class="btn btn-info btn-sm">View Schedules</a>
                         @endif
                     </td>

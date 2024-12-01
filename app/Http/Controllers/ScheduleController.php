@@ -87,6 +87,7 @@ class ScheduleController extends Controller
 
         $paginatedSchedules = $faculty->schedules->map(function ($schedule) {
             return [
+                'id' => $schedule->id, // Include the schedule ID here
                 'subject_code' => $schedule->subject->subject_code ?? 'N/A',
                 'subject_description' => $schedule->subject->subject_description ?? 'N/A',
                 'type' => $schedule->subject->type ?? 'N/A',
@@ -96,7 +97,7 @@ class ScheduleController extends Controller
                 'start_time' => $schedule->start_time ?? 'N/A',
                 'end_time' => $schedule->end_time ?? 'N/A',
             ];
-        })->forPage($page, $perPage);
+        });
 
         return response()->json([
             'position' => $faculty->position,
@@ -109,6 +110,7 @@ class ScheduleController extends Controller
             ],
         ]);
     }
+
 
     public function getSubjects()
     {
@@ -169,14 +171,29 @@ class ScheduleController extends Controller
 
     public function destroy($id)
     {
-        $schedule = Schedule::findOrFail($id);
-        $schedule->delete();
+        try {
+            \Log::info("Attempting to delete schedule with ID: $id");
+            $schedule = Schedule::findOrFail($id);
+            \Log::info("Schedule found: " . json_encode($schedule));
+            $schedule->delete();
+            \Log::info("Schedule with ID $id deleted successfully.");
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Schedule deleted successfully!'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Schedule deleted successfully!',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting schedule: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting the schedule.',
+            ], 500);
+        }
     }
+
+
+
 
     public function edit($id)
     {

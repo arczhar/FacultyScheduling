@@ -26,6 +26,27 @@
             </div>
         </div>
     </div>
+    <!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Delete</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this schedule?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <form action="{{ route('admin.schedules.store') }}" method="POST" id="addScheduleForm">
     @csrf
@@ -74,6 +95,7 @@
                     <th>Day</th>
                     <th>Room</th>
                     <th>Time</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="schedule_table_body">
@@ -153,12 +175,56 @@
 @push('scripts')
 <script>
 $(document).ready(function () {
+    // Set up CSRF token for all AJAX requests
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
 
+    let scheduleIdToDelete;
+
+    // Handle delete button click
+    $(document).on('click', '.delete-schedule', function () {
+        scheduleIdToDelete = $(this).data('id');
+        $('#deleteConfirmationModal').modal('show');
+    });
+
+    // Handle confirm delete button click
+    $('#confirmDeleteButton').click(function () {
+        if (scheduleIdToDelete) {
+            $.ajax({
+                url: `/admin/schedules/${scheduleIdToDelete}`,
+                method: 'DELETE',
+                success: function (response) {
+                    if (response.success) {
+                        // Remove the deleted row
+                        $(`#schedule-row-${scheduleIdToDelete}`).remove();
+
+                        // Hide the delete confirmation modal
+                        $('#deleteConfirmationModal').modal('hide');
+
+                        // Show success message in validation modal
+                        $('#validationModal .modal-body').text(response.message);
+                        $('#validationModal').modal('show');
+                    } else {
+                        // Show error message in validation modal
+                        $('#validationModal .modal-body').text(response.message);
+                        $('#validationModal').modal('show');
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Error response:', xhr.responseText);
+                    // Show error message in validation modal
+                    $('#validationModal .modal-body').text('An error occurred while deleting the schedule.');
+                    $('#validationModal').modal('show');
+                }
+            });
+        }
+    });
+
+
+    // Handle faculty selection change
     $('#faculty_id').change(function () {
         var facultyId = $(this).val();
         if (facultyId) {
@@ -179,33 +245,34 @@ $(document).ready(function () {
         }
     });
 
-   $('#subject_code').change(function () {
-    var subjectId = $(this).val();
-    if (subjectId) {
-        $.ajax({
-            url: '/get-subject-details/' + subjectId,
-            method: 'GET',
-            success: function (response) {
-                if (response.success) {
-                    $('#subject_description').val(response.subject.subject_description);
-                    $('#subject_type').val(response.subject.type);
-                    $('#subject_units').val(response.subject.credit_units);
-                } else {
-                    alert('Subject not found!');
+    // Handle subject selection change
+    $('#subject_code').change(function () {
+        var subjectId = $(this).val();
+        if (subjectId) {
+            $.ajax({
+                url: '/get-subject-details/' + subjectId,
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        $('#subject_description').val(response.subject.subject_description);
+                        $('#subject_type').val(response.subject.type);
+                        $('#subject_units').val(response.subject.credit_units);
+                    } else {
+                        alert('Subject not found!');
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Error:', xhr.responseText);
                 }
-            },
-            error: function (xhr) {
-                console.error('Error:', xhr.responseText);
-            }
-        });
-    } else {
-        $('#subject_description').val('');
-        $('#subject_type').val('');
-        $('#subject_units').val('');
-    }
-});
+            });
+        } else {
+            $('#subject_description').val('');
+            $('#subject_type').val('');
+            $('#subject_units').val('');
+        }
+    });
 
-    // Add Schedule Button Click
+    // Handle add schedule button click
     $('#add_schedule_button').click(function (e) {
         e.preventDefault();
 
@@ -219,9 +286,9 @@ $(document).ready(function () {
                     $('#validationModal .modal-body').text(response.message);
                     $('#validationModal').modal('show');
                 } else {
-                    // Add the schedule to the faculty schedule table dynamically
+                    // Add new schedule dynamically
                     var newRow = `
-                        <tr>
+                        <tr id="schedule-row-${response.schedule.id}">
                             <td>${response.schedule.subject_code}</td>
                             <td>${response.schedule.subject_description}</td>
                             <td>${response.schedule.type}</td>
@@ -229,10 +296,14 @@ $(document).ready(function () {
                             <td>${response.schedule.day}</td>
                             <td>${response.schedule.room}</td>
                             <td>${response.schedule.start_time} - ${response.schedule.end_time}</td>
+                            <td>
+                                <!-- Delete Button -->
+                                <button class="btn btn-danger btn-sm delete-schedule" data-id="${response.schedule.id}">Delete</button>
+                            </td>
                         </tr>`;
                     $('#schedule_table_body').append(newRow);
 
-                    // Reset only the subject-related fields
+                    // Reset subject-related fields
                     $('#subject_code').val('');
                     $('#subject_description').val('');
                     $('#subject_type').val('');
@@ -252,24 +323,38 @@ $(document).ready(function () {
             }
         });
     });
-
+    
+    // Populate faculty schedule table
+    // Populate faculty schedule table
     function populateScheduleTable(schedules) {
         var html = '';
-        schedules.forEach(function (schedule) {
-            html += `
+        if (schedules.length === 0) {
+            // If no schedules, display "No schedule"
+            html = `
                 <tr>
-                    <td>${schedule.subject_code}</td>
-                    <td>${schedule.subject_description}</td>
-                    <td>${schedule.type}</td>
-                    <td>${schedule.units}</td>
-                    <td>${schedule.day}</td>
-                    <td>${schedule.room}</td>
-                    <td>${schedule.start_time} - ${schedule.end_time}</td>
+                    <td colspan="8" class="text-center">No schedule available</td>
                 </tr>`;
-        });
+        } else {
+            schedules.forEach(function (schedule) {
+                html += `
+                    <tr id="schedule-row-${schedule.id}">
+                        <td>${schedule.subject_code}</td>
+                        <td>${schedule.subject_description}</td>
+                        <td>${schedule.type}</td>
+                        <td>${schedule.units}</td>
+                        <td>${schedule.day}</td>
+                        <td>${schedule.room}</td>
+                        <td>${schedule.start_time} - ${schedule.end_time}</td>
+                        <td>
+                            <!-- Delete Button -->
+                            <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        }
         $('#schedule_table_body').html(html);
     }
 });
-
 </script>
+
 @endpush

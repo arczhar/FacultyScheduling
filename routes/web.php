@@ -22,18 +22,9 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
         'update' => 'admin.faculty.update',
         'destroy' => 'admin.faculty.destroy',
     ]);
-    Route::get('/admin/faculty/{id}/edit', [AdminFacultyController::class, 'edit']);
-    Route::put('/admin/faculty/{id}', [AdminFacultyController::class, 'update']);
     Route::get('/admin/faculty/{id}', [AdminFacultyController::class, 'show'])->name('admin.faculty.show');
-    Route::get('/admin/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('admin.faculty.schedules');
 
-    Route::middleware(['auth:web', 'role:Program Chair'])->group(function () {
-        Route::get('/program-chair/dashboard', [AdminController::class, 'programChairDashboard'])->name('programchair.dashboard');
-    
-        // Program Chair Faculty Schedules
-        Route::get('/program-chair/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('programchair.faculty.schedules');
-    });
-    
+    Route::get('/admin/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('admin.faculty.schedules');
 
     // Subject Management
     Route::resource('/admin/subjects', SubjectController::class)->names([
@@ -52,19 +43,13 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
         'destroy' => 'admin.rooms.destroy',
     ]);
 
-    Route::get('/admin/examrm/examroom/events', [ExamScheduleController::class, 'fetchEvents'])->name('admin.examrm.events');
-    Route::post('/admin/examrm/examroom/store', [ExamScheduleController::class, 'store'])->name('admin.examrm.store');
-    Route::put('/admin/examrm/examroom/update/{id}', [ExamScheduleController::class, 'update'])->name('admin.examrm.update');
-    Route::delete('/admin/examrm/examroom/delete/{id}', [ExamScheduleController::class, 'destroy'])->name('admin.examrm.destroy');
-
-
-    Route::get('/admin/examrm/examroom', [ExamScheduleController::class, 'index'])->name('admin.examrm.examroom');
-    Route::get('/admin/examrm/examroom/events', [ExamScheduleController::class, 'fetchEvents'])->name('admin.examrm.events');
-    Route::post('/admin/examrm/examroom/store', [ExamScheduleController::class, 'store'])->name('admin.examrm.store');
-    Route::delete('/admin/examrm/examroom/{id}', [ExamScheduleController::class, 'destroy'])->name('admin.examrm.destroy');
-
-    
-    
+    // Exam Room Management
+    Route::prefix('/admin/examrm')->group(function () {
+        Route::get('/examroom', [ExamScheduleController::class, 'index'])->name('admin.examrm.examroom');
+        Route::get('/examroom/events', [ExamScheduleController::class, 'fetchEvents'])->name('admin.examrm.events');
+        Route::post('/examroom/store', [ExamScheduleController::class, 'store'])->name('admin.examrm.store');
+        Route::delete('/examroom/{id}', [ExamScheduleController::class, 'destroy'])->name('admin.examrm.destroy');
+    });
 
     // Schedule Management
     Route::resource('/admin/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])->names([
@@ -75,14 +60,12 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
         'update' => 'admin.schedules.update',
         'destroy' => 'admin.schedules.destroy',
     ]);
-    Route::delete('/admin/schedules/{id}', [ScheduleController::class, 'destroy'])->name('admin.schedules.destroy');
 });
 
 // Program Chair Routes
 Route::middleware(['auth:web', 'role:Program Chair'])->group(function () {
     Route::get('/program-chair/dashboard', [AdminController::class, 'programChairDashboard'])->name('programchair.dashboard');
-
-    // Program Chair Schedule Management
+    Route::get('/program-chair/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('programchair.faculty.schedules');
     Route::resource('/program-chair/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'edit', 'update'])->names([
         'index' => 'programchair.schedules.index',
         'create' => 'programchair.schedules.create',
@@ -90,7 +73,6 @@ Route::middleware(['auth:web', 'role:Program Chair'])->group(function () {
         'edit' => 'programchair.schedules.edit',
         'update' => 'programchair.schedules.update',
     ]);
-    Route::delete('/program-chair/schedules/{id}', [ScheduleController::class, 'destroy'])->name('programchair.schedules.destroy');
 });
 
 // Faculty Routes
@@ -105,26 +87,14 @@ Route::middleware(['auth:faculty'])->group(function () {
 
 // AJAX Routes
 Route::get('/get-faculty-details/{facultyId}', [ScheduleController::class, 'getFacultyDetails'])->name('get-faculty-details');
-Route::get('/get-subjects', [ScheduleController::class, 'getSubjects'])->name('get-subjects');
 Route::get('/get-subject-details/{id}', [SubjectController::class, 'getSubjectDetails'])->name('get-subject-details');
 Route::post('/check-schedule-conflict', [ScheduleController::class, 'checkAndSaveSchedule'])->name('check-schedule-conflict');
-Route::post('/admin/schedules', [ScheduleController::class, 'store'])->name('admin.schedules.store');
 
 // Miscellaneous Routes
-Route::get('/simple-page', function () {
-    return view('simple');
-});
-Route::get('/test-modal', function () {
-    return view('test-modal');
-})->name('test-modal');
-Route::get('/debug-role', function () {
-    return Auth::check() ? 'Logged in as ' . Auth::user()->role : 'Not logged in';
-})->middleware('auth:web');
-
-Route::get('/test', function () {
-    return 'Test route works!';
-});
-    
+Route::get('/simple-page', fn() => view('simple'));
+Route::get('/test-modal', fn() => view('test-modal'))->name('test-modal');
+Route::get('/debug-role', fn() => Auth::check() ? 'Logged in as ' . Auth::user()->role : 'Not logged in')->middleware('auth:web');
+Route::get('/test', fn() => 'Test route works!');
 
 // Authentication Routes
 Auth::routes();
