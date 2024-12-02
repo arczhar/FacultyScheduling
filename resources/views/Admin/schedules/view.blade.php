@@ -21,9 +21,16 @@
     <!-- Redirect Button -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="mt-4">Faculty's Schedules</h6>
-        @if(auth()->user()->role === 'admin' || auth()->user()->role === 'program-chair')
-    <a href="{{ route('admin.schedules.create') }}" class="btn btn-primary">Go to Add/Edit Schedule</a>
-@endif
+        <a href="{{ auth()->user()->role === 'admin' ? route('admin.schedules.create') : route('programchair.schedules.create') }}" 
+   class="btn btn-primary">
+    Go to Add/Edit Schedule
+</a>
+
+
+
+
+</a>
+
 
     </div>
 
@@ -42,24 +49,24 @@
         </thead>
         <tbody>
             @forelse($schedules as $schedule)
-            <tr>
-                <td>{{ $schedule->subject->subject_code ?? 'N/A' }}</td>
-                <td>{{ $schedule->subject->subject_description ?? 'N/A' }}</td>
-                <td>{{ $schedule->subject->type ?? 'N/A' }}</td>
-                <td>{{ $schedule->subject->credit_units ?? 'N/A' }}</td>
-                <td>{{ $schedule->day }}</td>
-                <td>{{ $schedule->room->room_name ?? 'N/A' }}</td>
-                <td>{{ $schedule->start_time }} - {{ $schedule->end_time }}</td>
-            </tr>
+                <tr>
+                    <td>{{ $schedule->subject->subject_code ?? 'N/A' }}</td>
+                    <td>{{ $schedule->subject->subject_description ?? 'N/A' }}</td>
+                    <td>{{ $schedule->subject->type ?? 'N/A' }}</td>
+                    <td>{{ $schedule->subject->credit_units ?? 'N/A' }}</td>
+                    <td>{{ $schedule->day }}</td>
+                    <td>{{ $schedule->room->room_name ?? 'N/A' }}</td>
+                    <td>{{ $schedule->start_time }} - {{ $schedule->end_time }}</td>
+                </tr>
             @empty
-            <tr>
-                <td colspan="7" class="text-center">No schedules available for this faculty.</td>
-            </tr>
+                <tr>
+                    <td colspan="7" class="text-center">No schedules available for this faculty.</td>
+                </tr>
             @endforelse
         </tbody>
     </table>
 
     <!-- Back to List Button -->
-    <a href="{{ route('admin.schedules.index') }}" class="btn btn-secondary mt-3">Back to List</a>
+    <a href="{{ route(auth()->user()->role === 'admin' ? 'admin.schedules.index' : 'programchair.schedules.index') }}" class="btn btn-secondary mt-3">Back to List</a>
 </div>
 @endsection

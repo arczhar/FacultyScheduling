@@ -25,16 +25,8 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <style>
-        /* Custom pagination and sidebar styles */
-        .pagination svg {
-            width: 16px;
-            height: 16px;
-        }
-        .pagination .page-item {
-            margin: 0 5px;
-        }
-    </style>
+    <meta name="user-role" content="{{ Auth::user()->role }}">
+
 </head>
 <body>
     <!-- Navbar -->
@@ -64,44 +56,81 @@
 
     <!-- Sidebar -->
     <div class="d-flex">
-        <div class="bg-secondary p-3" style="width: 250px; min-height: 100vh;">
-            <h4 class="text-white text-center py-3">{{ Auth::user()->role }} Panel</h4>
+    <div class="bg-maroon p-3" style="width: 250px; min-height: 100vh; background-color: #800000; color: white;">
+        <h4 class="text-white text-center py-3">{{ Auth::user()->role === 'admin' ? 'Admin Panel' : 'Program Chair Panel' }}</h4>
 
-            <!-- Dashboard -->
-            <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('programchair.dashboard') }}"
-               class="d-block p-2 text-white {{ request()->routeIs(Auth::user()->role === 'admin' ? 'admin.dashboard' : 'programchair.dashboard') ? 'bg-dark' : '' }}">
-                Dashboard
+        <!-- Dashboard -->
+        <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('programchair.dashboard') }}"
+           class="d-block p-2 text-white {{ request()->routeIs(Auth::user()->role === 'admin' ? 'admin.dashboard' : 'programchair.dashboard') ? 'bg-dark' : '' }}">
+            Dashboard
+        </a>
+
+        <!-- Manage Faculty -->
+        @if(Auth::user()->role === 'admin')
+            <a href="{{ route('admin.faculty.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.faculty.index') ? 'bg-dark' : '' }}">
+                Manage Faculty
             </a>
+        @endif
 
-            <!-- Admin-Only Links -->
-            @if(Auth::user()->role === 'admin')
-                <a href="{{ route('admin.faculty.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.faculty.index') ? 'bg-dark' : '' }}">Manage Faculty</a>
-                <a href="{{ route('admin.subjects.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.subjects.index') ? 'bg-dark' : '' }}">Manage Subjects</a>
-                <a href="{{ route('admin.rooms.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.rooms.index') ? 'bg-dark' : '' }}">Manage Rooms</a>
-                <a href="{{ route('admin.examrm.examroom') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.examrm.examroom') ? 'bg-dark' : '' }}">Manage Exam Rooms</a>
-            @endif
+        <!-- Manage Subjects -->
+        @if(Auth::user()->role === 'admin')
+            <a href="{{ route('admin.subjects.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.subjects.index') ? 'bg-dark' : '' }}">
+                Manage Subjects
+            </a>
+        @endif
 
-            <!-- Manage Schedules (Shared) -->
-            <div class="dropdown">
-                <a href="#" class="d-block p-2 text-white dropdown-toggle {{ request()->routeIs('admin.schedules.*', 'programchair.schedules.*') ? 'bg-dark' : '' }}" id="scheduleDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Manage Schedules
+        <!-- Manage Schedules Dropdown -->
+        <div class="dropdown">
+            <a href="#" class="d-block p-2 text-white dropdown-toggle {{ request()->routeIs('admin.schedules.*', 'programchair.schedules.*') ? 'bg-dark' : '' }}"
+               id="manageScheduleDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Manage Schedules
+            </a>
+            <div class="dropdown-menu">
+                <a href="{{ Auth::user()->role === 'admin' ? route('admin.schedules.index') : route('programchair.schedules.index') }}" class="dropdown-item">
+                    List of Schedules
                 </a>
-                <div class="dropdown-menu">
-                    <a class="dropdown-item {{ request()->routeIs(Auth::user()->role === 'admin' ? 'admin.schedules.index' : 'programchair.schedules.index') ? 'active' : '' }}" href="{{ Auth::user()->role === 'admin' ? route('admin.schedules.index') : route('programchair.schedules.index') }}">
-                        List of Schedules
-                    </a>
-                    <a class="dropdown-item {{ request()->routeIs(Auth::user()->role === 'admin' ? 'admin.schedules.create' : 'programchair.schedules.create') ? 'active' : '' }}" href="{{ Auth::user()->role === 'admin' ? route('admin.schedules.create') : route('programchair.schedules.create') }}">
-                        Add Schedule
-                    </a>
-                </div>
+                <a href="{{ Auth::user()->role === 'admin' ? route('admin.schedules.create') : route('programchair.schedules.create') }}" class="dropdown-item">
+                    Add Schedule
+                </a>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="content p-4" style="width: 100%;">
-            @yield('content')
+        <!-- Manage Rooms Dropdown -->
+        @if(Auth::user()->role === 'admin')
+            <div class="dropdown">
+                <a href="#" class="d-block p-2 text-white dropdown-toggle {{ request()->routeIs('admin.rooms.*', 'admin.examrm.*') ? 'bg-dark' : '' }}"
+                   id="manageRoomsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Manage Rooms
+                </a>
+                <div class="dropdown-menu">
+                    <a href="{{ route('admin.rooms.index') }}" class="dropdown-item">Manage Rooms</a>
+                    <a href="{{ route('admin.examrm.examroom') }}" class="dropdown-item">Manage Exam Rooms</a>
+                </div>
+            </div>
+        @endif
+
+    
+    </div>
+
+
+
+    <!-- Main Content -->
+    <div class="content p-4" style="width: 100%;">
+        @yield('content')
+    </div>
+</div>
+
+
+<!-- End of Sidebar -->
+<footer class="sticky-footer bg-white">
+    <div class="container my-auto">
+        <div class="copyright text-center my-auto">
+            <span>Copyright &copy; Unibersidad De Zamboanga | School of Engineering and Information Technology{{ date('Y') }}</span>
         </div>
     </div>
+</footer>
+
+
 
     <!-- Popper.js (Load Second) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
