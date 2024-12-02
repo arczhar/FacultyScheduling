@@ -14,7 +14,7 @@
     <!-- Faculty List Table -->
     <h6 class="mt-4">Faculty List</h6>
     <table class="table table-bordered">
-        <thead>
+        <thead style="background-color: maroon; color: white;">
             <tr>
                 <th>Faculty Name</th>
                 <th>Position</th>

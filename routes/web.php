@@ -10,6 +10,7 @@ use App\Http\Controllers\ExamScheduleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+
 // Admin Routes
 Route::middleware(['auth:web', 'role:Admin'])->group(function () {
     Route::get('admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
@@ -88,6 +89,12 @@ Route::middleware(['auth:faculty'])->group(function () {
     Route::get('/faculty/change-password', [FacultyController::class, 'showChangePasswordForm'])->name('faculty.change-password');
     Route::post('/faculty/change-password', [FacultyController::class, 'updatePassword'])->name('faculty.update-password');
 });
+
+Route::post('/update-schedule', [ExamScheduleController::class, 'updateSchedule'])->name('examroom.updateSchedule');
+Route::post('/admin/exam-schedule/assign', [ExamScheduleController::class, 'assignSchedule'])->name('exam-schedule.assign');
+Route::post('/admin/exam-schedule/update', [ExamScheduleController::class, 'updateSchedule'])->name('examroom.updateSchedule');
+
+
 
 // AJAX Routes
 Route::get('/get-faculty-details/{facultyId}', [ScheduleController::class, 'getFacultyDetails'])->name('get-faculty-details');

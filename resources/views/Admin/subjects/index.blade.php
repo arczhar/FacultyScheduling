@@ -40,7 +40,7 @@
     <!-- Subjects Table -->
     <h6 class="mt-4">Subjects List</h6>
     <table class="table table-bordered">
-        <thead>
+        <thead style="background-color: maroon; color: white;">
             <tr>
                 <th>Subject Code</th>
                 <th>Description</th>

@@ -28,7 +28,7 @@
     <!-- Rooms Table -->
     <h6 class="mt-4">Room List</h6>
     <table class="table table-bordered">
-        <thead>
+        <thead style="background-color: maroon; color: white;">
             <tr>
                 <th>Room Name</th>
                 <th>Actions</th>

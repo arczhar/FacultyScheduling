@@ -13,20 +13,22 @@ return new class extends Migration
     {
         Schema::create('exam_schedules', function (Blueprint $table) {
             $table->id();
-            $table->string('room_name');
-            $table->date('exam_date');
-            $table->time('start_time');
-            $table->time('end_time');
-            $table->text('details')->nullable();
+            $table->unsignedBigInteger('room_id'); // Reference to exam_rooms
+            $table->unsignedBigInteger('subject_id'); // Reference to subjects
+            $table->string('time_slot'); // Time slot column
+            $table->date('exam_date')->nullable(); // Optional if only room and time slot are needed
             $table->timestamps();
+
+            // Foreign key constraints
+            $table->foreign('room_id')->references('id')->on('exam_rooms')->onDelete('cascade');
+            $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('cascade');
         });
     }
-    
 
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('exam_schedules');
     }
