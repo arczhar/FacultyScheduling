@@ -76,25 +76,27 @@
             @endif
 
             <!-- Manage Schedules Dropdown -->
-            <div class="dropdown">
-                <a href="#"
-                   class="d-block p-2 text-white dropdown-toggle {{ request()->routeIs('admin.schedules.*', 'programchair.schedules.*') ? 'bg-dark' : '' }}"
-                   id="manageScheduleDropdown"
-                   data-toggle="dropdown"
-                   aria-haspopup="true"
-                   aria-expanded="false">
+           <!-- Manage Schedules Dropdown -->
+           <div class="dropdown">
+                <a href="#" 
+                class="d-block p-2 text-white dropdown-toggle {{ request()->routeIs('admin.schedules.*') || request()->routeIs('programchair.schedules.*') ? 'bg-dark' : '' }}" 
+                id="manageScheduleDropdown" 
+                data-toggle="dropdown" 
+                aria-haspopup="true" 
+                aria-expanded="false">
                     Manage Schedules
                 </a>
                 <div class="dropdown-menu">
-                    @if(Auth::user()->role === 'admin')
-                        <a href="{{ route('admin.schedules.index') }}" class="dropdown-item">List of Schedules</a>
-                        <a href="{{ route('admin.schedules.create') }}" class="dropdown-item">Add Schedule</a>
-                    @elseif(Auth::user()->role === 'Program Chair')
-                        <a href="{{ route('programchair.schedules.index') }}" class="dropdown-item">List of Schedules</a>
-                        <a href="{{ route('programchair.schedules.create') }}" class="dropdown-item">Add Schedule</a>
-                    @endif
+                    <a href="{{ Auth::user()->role === 'Admin' ? route('admin.schedules.index') : route('programchair.schedules.index') }}" class="dropdown-item">
+                        List of Schedules
+                    </a>
+                    <a href="{{ Auth::user()->role === 'Admin' ? route('admin.schedules.create') : route('programchair.schedules.create') }}" class="dropdown-item">
+                        Add Schedule
+                    </a>
                 </div>
             </div>
+
+
 
             <!-- Manage Rooms Dropdown -->
             @if(Auth::user()->role === 'admin')

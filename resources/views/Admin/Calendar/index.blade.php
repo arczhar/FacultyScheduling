@@ -26,6 +26,8 @@
             <label for="end_date">End Date</label>
             <input type="date" class="form-control" id="end_date" name="end_date">
         </div>
+
+
         <div class="form-group">
             <label for="description">Description</label>
             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
@@ -85,6 +87,27 @@
         </div>
     </div>
 </div>
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Deletion</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this event?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDeleteButton" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -136,15 +159,12 @@ $(document).ready(function () {
         e.preventDefault();
         const eventId = $('#event_id').val();
         const actionUrl = eventId
-            ? `/admin/calendar-events/${eventId}`
-            : `/admin/calendar-events`;
+            ? `{{ route("admin.calendar-events.update", ":id") }}`.replace(':id', eventId)
+            : `{{ route("admin.calendar-events.store") }}`;
 
         $.ajax({
             url: actionUrl,
             method: eventId ? 'PUT' : 'POST',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-            },
             data: $('#eventForm').serialize(),
             success: function (response) {
                 const event = response.event;
@@ -170,7 +190,6 @@ $(document).ready(function () {
                 $('#clearEventFormButton').hide();
                 $('#toggleEventFormButton').text('Add Event');
                 $('#submitEventButton').text('Add Event').prop('disabled', true);
-                initialFormData = $('#eventForm').serialize();
 
                 // Show success modal
                 $('#successModal .modal-body').text(eventId ? 'Event updated successfully!' : 'Event added successfully!');
@@ -190,51 +209,67 @@ $(document).ready(function () {
     // Handle Edit Event
     $(document).on('click', '.editEventButton', function () {
         const eventId = $(this).data('id');
-        $.get(`/admin/calendar-events/${eventId}`, function (response) {
-            const event = response.event;
-            $('#event_id').val(event.id);
-            $('#title').val(event.title);
-            $('#start_date').val(event.start_date);
-            $('#end_date').val(event.end_date);
-            $('#description').val(event.description);
-            $('#submitEventButton').text('Update Event');
-            $('#submitEventButton').prop('disabled', true);
-            $('#eventForm').show();
-            $('#clearEventFormButton').show();
-            $('#toggleEventFormButton').text('Cancel');
-            initialFormData = $('#eventForm').serialize();
-        });
-    });
-
-    // Handle Delete Event
-    $(document).on('click', '.deleteEventButton', function () {
-        const eventId = $(this).data('id');
-
-        // Confirm deletion
-        if (!confirm('Are you sure you want to delete this event?')) {
-            return;
-        }
 
         $.ajax({
-            url: `/admin/calendar-events/${eventId}`,
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-            },
+            url: `{{ route('admin.calendar-events.edit', ':id') }}`.replace(':id', eventId),
+            method: 'GET',
             success: function (response) {
-                if (response.success) {
-                    $(`#eventRow-${eventId}`).remove();
-                    $('#successModal .modal-body').text('Event deleted successfully!');
-                    $('#successModal').modal('show');
-                } else {
-                    alert('Failed to delete the event.');
-                }
+                const event = response.event;
+                $('#event_id').val(event.id);
+                $('#title').val(event.title);
+                $('#start_date').val(event.start_date);
+                $('#end_date').val(event.end_date || '');
+                $('#description').val(event.description || '');
+                $('#submitEventButton').text('Update Event').prop('disabled', true);
+                $('#eventForm').show();
+                $('#clearEventFormButton').show();
+                $('#toggleEventFormButton').text('Cancel');
             },
-            error: function () {
-                alert('An error occurred while deleting the event.');
-            },
+            error: function (xhr) {
+                alert('Failed to load event data. Please try again.');
+            }
         });
     });
+
+
+    // Handle Delete Event
+    $(document).ready(function () {
+        let deleteEventId = null; // Store the event ID to delete
+
+        // Show the modal when clicking on the delete button
+        $(document).on('click', '.deleteEventButton', function () {
+            deleteEventId = $(this).data('id'); // Get the ID of the event to delete
+            $('#deleteConfirmationModal').modal('show'); // Show the modal
+        });
+
+        // Handle the confirmation delete button in the modal
+        $('#confirmDeleteButton').click(function () {
+            if (!deleteEventId) return;
+
+            $.ajax({
+                url: `{{ route('admin.calendar-events.destroy', ':id') }}`.replace(':id', deleteEventId),
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $(`#eventRow-${deleteEventId}`).remove(); // Remove the row from the table
+                        $('#deleteConfirmationModal').modal('hide'); // Hide the modal
+                        $('#successModal .modal-body').text('Event deleted successfully!');
+                        $('#successModal').modal('show'); // Show success message
+                    } else {
+                        alert('Failed to delete the event.');
+                    }
+                },
+                error: function () {
+                    alert('An error occurred while deleting the event.');
+                }
+            });
+        });
+    });
+
+
 
     // Clear form handler
     $('#clearEventFormButton').click(function () {
@@ -245,6 +280,36 @@ $(document).ready(function () {
         $('#submitEventButton').text('Add Event').prop('disabled', true);
         initialFormData = $('#eventForm').serialize();
     });
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+    const startDateInput = document.getElementById("start_date");
+    const endDateInput = document.getElementById("end_date");
+
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split("T")[0];
+
+    // Disable past dates for Start Date and set default value
+    startDateInput.setAttribute("min", today);
+    startDateInput.value = today;
+
+    // Disable past dates for End Date and dynamically adjust based on Start Date
+    startDateInput.addEventListener("change", function () {
+        const startDate = startDateInput.value;
+
+        // Set the minimum date for End Date to match Start Date
+        endDateInput.setAttribute("min", startDate);
+
+        // Automatically adjust End Date if it's earlier than Start Date
+        if (endDateInput.value < startDate) {
+            endDateInput.value = startDate;
+        }
+    });
+
+    // Set initial min for End Date as today's date
+    endDateInput.setAttribute("min", today);
+});
+
 });
 </script>
 @endpush

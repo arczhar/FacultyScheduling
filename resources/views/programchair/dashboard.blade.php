@@ -1,11 +1,11 @@
-@extends('layouts.admin')
+@extends('layouts.admin') {{-- Using the admin layout --}}
 
 @section('title', 'Program Chair Dashboard')
 
 @section('content')
-<div class="container">
+<div class="container mt-4">
     <h1>Program Chair Dashboard</h1>
-    <div id="calendar"></div> <!-- Calendar placeholder -->
+    <div id="calendar"></div>
 </div>
 @endsection
 
@@ -14,6 +14,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
+
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             events: [
@@ -22,11 +23,11 @@
                     title: "{{ $event->title }}",
                     start: "{{ $event->start_date }}",
                     end: "{{ $event->end_date }}",
-                    description: "{{ $event->description }}",
                 },
                 @endforeach
             ],
         });
+
         calendar.render();
     });
 </script>

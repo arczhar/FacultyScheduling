@@ -65,13 +65,9 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
     Route::put('/admin/schedules/{id}', [ScheduleController::class, 'update'])->name('admin.schedules.update');
     Route::get('/admin/schedules/{id}/edit', [ScheduleController::class, 'edit'])->name('admin.schedules.edit');
 
-    Route::get('/api/calendar-events', [CalendarEventController::class, 'fetchEvents'])->name('calendar-events.api');
-
-
-    // Manage Calendar
+    // Manage Calendar (Admin only)
     Route::prefix('/admin/calendar')->group(function () {
         Route::get('/', [CalendarEventController::class, 'index'])->name('admin.calendar-events.index');
-        Route::get('/create', [CalendarEventController::class, 'create'])->name('admin.calendar-events.create');
         Route::post('/', [CalendarEventController::class, 'store'])->name('admin.calendar-events.store');
         Route::get('/{calendarEvent}/edit', [CalendarEventController::class, 'edit'])->name('admin.calendar-events.edit');
         Route::put('/{calendarEvent}', [CalendarEventController::class, 'update'])->name('admin.calendar-events.update');
@@ -79,20 +75,20 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
     });
 });
 
-
 // Program Chair Routes
 Route::middleware(['auth:web', 'role:Program Chair'])->group(function () {
-    // Dashboard for Program Chair
     Route::get('/program-chair/dashboard', [CalendarEventController::class, 'programChairDashboard'])->name('programchair.dashboard');
-
-    // Faculty Schedules for Program Chair
     Route::get('/program-chair/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('programchair.faculty.schedules');
-
-    // Calendar View for Program Chair (optional if already included in dashboard)
+    Route::resource('/program-chair/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])->names([
+        'index' => 'programchair.schedules.index',
+        'create' => 'programchair.schedules.create',
+        'store' => 'programchair.schedules.store',
+        'edit' => 'programchair.schedules.edit',
+        'update' => 'programchair.schedules.update',
+        'destroy' => 'programchair.schedules.destroy',
+    ]);
     Route::get('/program-chair/calendar-events', [CalendarEventController::class, 'index'])->name('programchair.calendar-events.index');
 });
-
-
 
 // Faculty Routes
 Route::middleware(['auth:faculty'])->group(function () {
@@ -103,9 +99,6 @@ Route::middleware(['auth:faculty'])->group(function () {
     Route::get('/faculty/change-password', [FacultyController::class, 'showChangePasswordForm'])->name('faculty.change-password');
     Route::post('/faculty/change-password', [FacultyController::class, 'updatePassword'])->name('faculty.update-password');
 });
-
-Route::post('/update-schedule', [ExamScheduleController::class, 'updateSchedule'])->name('examroom.updateSchedule');
-Route::post('/admin/exam-schedule/assign', [ExamScheduleController::class, 'assignSchedule'])->name('exam-schedule.assign');
 
 // AJAX Routes
 Route::get('/get-faculty-details/{facultyId}', [ScheduleController::class, 'getFacultyDetails'])->name('get-faculty-details');

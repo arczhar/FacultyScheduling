@@ -7,21 +7,20 @@ use Illuminate\Http\Request;
 
 class CalendarEventController extends Controller
 {
-    // Display calendar events (Admin and Program Chair)
-    public function index()
-{
-    // Use paginate instead of all()
-    $events = CalendarEvent::paginate(10); // Adjust the number 10 as needed
-    return view('admin.Calendar.index', compact('events'));
-}
+   // Display calendar events (Admin only)
+   public function index()
+   {
+       $events = CalendarEvent::paginate(10); // Pagination for events
+       return view('admin.Calendar.index', compact('events'));
+   }
 
-
-    public function programChairDashboard()
+   // Dashboard view for Program Chair
+   public function programChairDashboard()
     {
-        $events = CalendarEvent::all(); // Fetch all events
-        return view('programchair.dashboard', compact('events')); // Pass events to the view
+        $events = CalendarEvent::all();
+        logger($events); // Log the events to confirm they are being fetched
+        return view('programchair.dashboard', compact('events'));
     }
-
 
 
 
@@ -32,6 +31,7 @@ class CalendarEventController extends Controller
     }
 
     // Store a new calendar event (Admin only)
+    // Store a new calendar event (Admin only)
     public function store(Request $request)
     {
         $request->validate([
@@ -41,51 +41,57 @@ class CalendarEventController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        CalendarEvent::create($request->all());
+        $event = CalendarEvent::create($request->all());
 
-        return redirect()->route('admin.calendar-events.index')->with('success', 'Event added successfully.');
+        return response()->json(['success' => true, 'event' => $event], 200);
     }
+
 
     // Show the form to edit an event (Admin only)
     public function edit(CalendarEvent $calendarEvent)
     {
-        return view('admin.Calendar.edit', compact('calendarEvent'));
+        return response()->json(['event' => $calendarEvent], 200);
     }
 
-    // Update a calendar event (Admin only)
-    public function update(Request $request, CalendarEvent $calendarEvent)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'description' => 'nullable|string',
-        ]);
-
-        $calendarEvent->update($request->all());
-
-        return redirect()->route('admin.calendar-events.index')->with('success', 'Event updated successfully.');
-    }
+     // Update a calendar event (Admin only)
+     public function update(Request $request, CalendarEvent $calendarEvent)
+     {
+         $request->validate([
+             'title' => 'required|string|max:255',
+             'start_date' => 'required|date',
+             'end_date' => 'nullable|date|after_or_equal:start_date',
+             'description' => 'nullable|string',
+         ]);
+ 
+         $calendarEvent->update($request->all());
+ 
+         return response()->json(['success' => true, 'event' => $calendarEvent], 200);
+     }
 
     // Delete a calendar event (Admin only)
     public function destroy(CalendarEvent $calendarEvent)
     {
+        
         $calendarEvent->delete();
 
-        return redirect()->route('admin.calendar-events.index')->with('success', 'Event deleted successfully.');
+        return response()->json(['success' => true], 200);
     }
 
+
+    
     public function fetchEvents()
-{
-    $events = CalendarEvent::all()->map(function ($event) {
-        return [
-            'title' => $event->title,
-            'start' => $event->start_date,
-            'end' => $event->end_date,
-        ];
-    });
+    {
+        $events = CalendarEvent::all()->map(function ($event) {
+            return [
+                'title' => $event->title,
+                'start' => $event->start_date,
+                'end' => $event->end_date,
+                'description' => $event->description,
+            ];
+        });
 
-    return response()->json($events);
+        return response()->json($events);
+    }
 }
 
-}
+

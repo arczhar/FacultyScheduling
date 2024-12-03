@@ -8,10 +8,7 @@
 
     <!-- Add Room Button -->
     <button type="button" id="toggleRoomFormButton" class="btn btn-primary">Add Room</button>
-    <!-- Link to Manage Exam Rooms -->
-    <a href="{{ route('admin.examrm.examroom') }}" class="btn btn-secondary mb-3">
-        Manage Exam Rooms
-    </a>
+    
     <!-- Add/Edit Room Form -->
     <form id="roomForm" style="display: none;" class="mt-4">
         @csrf
