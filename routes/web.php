@@ -7,9 +7,9 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AdminFacultyController;
 use App\Http\Controllers\ExamScheduleController;
+use App\Http\Controllers\CalendarEventController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-
 
 // Admin Routes
 Route::middleware(['auth:web', 'role:Admin'])->group(function () {
@@ -64,21 +64,35 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
     Route::get('/admin/schedules/{id}', [ScheduleController::class, 'show'])->name('admin.schedules.show');
     Route::put('/admin/schedules/{id}', [ScheduleController::class, 'update'])->name('admin.schedules.update');
     Route::get('/admin/schedules/{id}/edit', [ScheduleController::class, 'edit'])->name('admin.schedules.edit');
+
+    Route::get('/api/calendar-events', [CalendarEventController::class, 'fetchEvents'])->name('calendar-events.api');
+
+
+    // Manage Calendar
+    Route::prefix('/admin/calendar')->group(function () {
+        Route::get('/', [CalendarEventController::class, 'index'])->name('admin.calendar-events.index');
+        Route::get('/create', [CalendarEventController::class, 'create'])->name('admin.calendar-events.create');
+        Route::post('/', [CalendarEventController::class, 'store'])->name('admin.calendar-events.store');
+        Route::get('/{calendarEvent}/edit', [CalendarEventController::class, 'edit'])->name('admin.calendar-events.edit');
+        Route::put('/{calendarEvent}', [CalendarEventController::class, 'update'])->name('admin.calendar-events.update');
+        Route::delete('/{calendarEvent}', [CalendarEventController::class, 'destroy'])->name('admin.calendar-events.destroy');
+    });
 });
 
+
 // Program Chair Routes
-Route::middleware(['auth:web', 'role:Program Chair,Admin'])->group(function () {
-    Route::get('/program-chair/dashboard', [AdminController::class, 'programChairDashboard'])->name('programchair.dashboard');
+Route::middleware(['auth:web', 'role:Program Chair'])->group(function () {
+    // Dashboard for Program Chair
+    Route::get('/program-chair/dashboard', [CalendarEventController::class, 'programChairDashboard'])->name('programchair.dashboard');
+
+    // Faculty Schedules for Program Chair
     Route::get('/program-chair/faculty/{id}/schedules', [ScheduleController::class, 'viewFacultySchedules'])->name('programchair.faculty.schedules');
-    Route::resource('/program-chair/schedules', ScheduleController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])->names([
-        'index' => 'programchair.schedules.index',
-        'create' => 'programchair.schedules.create',
-        'store' => 'programchair.schedules.store',
-        'edit' => 'programchair.schedules.edit',
-        'update' => 'programchair.schedules.update',
-        'destroy' => 'programchair.schedules.destroy',
-    ]);
+
+    // Calendar View for Program Chair (optional if already included in dashboard)
+    Route::get('/program-chair/calendar-events', [CalendarEventController::class, 'index'])->name('programchair.calendar-events.index');
 });
+
+
 
 // Faculty Routes
 Route::middleware(['auth:faculty'])->group(function () {
@@ -92,16 +106,12 @@ Route::middleware(['auth:faculty'])->group(function () {
 
 Route::post('/update-schedule', [ExamScheduleController::class, 'updateSchedule'])->name('examroom.updateSchedule');
 Route::post('/admin/exam-schedule/assign', [ExamScheduleController::class, 'assignSchedule'])->name('exam-schedule.assign');
-Route::post('/admin/exam-schedule/update', [ExamScheduleController::class, 'updateSchedule'])->name('examroom.updateSchedule');
-
-
 
 // AJAX Routes
 Route::get('/get-faculty-details/{facultyId}', [ScheduleController::class, 'getFacultyDetails'])->name('get-faculty-details');
 Route::get('/get-subject-details/{id}', [SubjectController::class, 'getSubjectDetails'])->name('get-subject-details');
 Route::post('/check-schedule-conflict', [ScheduleController::class, 'checkAndSaveSchedule'])->name('check-schedule-conflict');
 Route::get('/admin/schedules/{id}', [ScheduleController::class, 'show']);
-
 
 // Miscellaneous Routes
 Route::get('/simple-page', fn() => view('simple'));
