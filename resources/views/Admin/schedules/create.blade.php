@@ -300,48 +300,40 @@ $(document).ready(function () {
 
     // Handle Add/Update Schedule button click
     $(document).on('click', '#add_schedule_button, #update_schedule_button', function (e) {
-        e.preventDefault();
+    e.preventDefault();
 
-        const buttonId = $(this).attr('id');
-        const isUpdate = buttonId === 'update_schedule_button';
-        const scheduleId = $('#addScheduleForm').data('schedule-id'); // Retrieve schedule ID for updates
+    const buttonId = $(this).attr('id');
+    const isUpdate = buttonId === 'update_schedule_button';
+    const scheduleId = $('#addScheduleForm').data('schedule-id'); // Retrieve schedule ID for updates
 
-        if (isUpdate && !scheduleId) {
-            alert('Schedule ID is missing for update!');
-            return;
-        }
-
-        const ajaxOptions = {
-            url: isUpdate ? `/admin/schedules/${scheduleId}` : '/admin/schedules',
-            method: isUpdate ? 'PUT' : 'POST',
-            data: $('#addScheduleForm').serialize(),
-            success: function (response) {
-                if (response.success) {
-                    if (isUpdate) {
-                        updateScheduleRow(scheduleId, response.schedule); // Update row
-                    } else {
-                        appendScheduleRow(response.schedule); // Add new row
-                    }
-                    resetScheduleFields();
-                    showModal('Success', response.message);
-
-                    if (isUpdate) {
-                        $('#update_schedule_button').text('Add Schedule').attr('id', 'add_schedule_button');
-                        $('#addScheduleForm').removeData('schedule-id'); // Remove schedule ID
-                    }
+    const ajaxOptions = {
+        url: isUpdate ? `/admin/schedules/${scheduleId}` : '/admin/schedules',
+        method: isUpdate ? 'PUT' : 'POST',
+        data: $('#addScheduleForm').serialize(),
+        success: function (response) {
+            if (response.success) {
+                if (isUpdate) {
+                    updateScheduleRow(scheduleId, response.schedule); // Update the row dynamically
+                    showModal('Success', 'Schedule updated successfully!');
                 } else {
-                    showModal('Error', response.message);
+                    appendScheduleRow(response.schedule); // Append the new row dynamically
+                    showModal('Success', 'Schedule added successfully!');
                 }
-            },
-            error: function (xhr) {
-                console.error('Error:', xhr.responseText);
-                showModal('Error', 'An error occurred while processing the schedule.');
-            },
-        };
+                resetScheduleFields(); // Clear the form fields
+            } else {
+                showModal('Error', response.message || 'Failed to save schedule.');
+            }
+        },
+        error: function (xhr) {
+            console.error('Error:', xhr.responseText);
+            showModal('Error', 'An error occurred while saving the schedule.');
+        },
+    };
 
-        // Execute AJAX request
-        $.ajax(ajaxOptions);
-    });
+    // Execute AJAX request
+    $.ajax(ajaxOptions);
+});
+
 
     // Handle edit button click
     $(document).on('click', '.edit-schedule', function () {

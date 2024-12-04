@@ -86,41 +86,45 @@ class ScheduleController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'faculty_id' => 'required|exists:faculty,id',
-            'subject_id' => 'required|exists:subjects,id',
-            'room_id' => 'required|exists:rooms,id',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'day' => 'required',
-        ]);
+{
+    $request->validate([
+        'faculty_id' => 'required|exists:faculty,id',
+        'subject_id' => 'required|exists:subjects,id',
+        'room_id' => 'required|exists:rooms,id',
+        'start_time' => 'required|date_format:H:i',
+        'end_time' => 'required|date_format:H:i|after:start_time',
+        'day' => 'required',
+    ]);
 
-        if ($this->hasConflict($request->all())) {
-            return response()->json([
-                'conflict' => true,
-                'message' => 'Schedule conflict detected!',
-            ]);
-        }
-
-        $schedule = Schedule::create($request->all());
-        $schedule->load('subject', 'room');
-
+    // Check for schedule conflict
+    if ($this->hasConflict($request->all())) {
         return response()->json([
-            'conflict' => false,
-            'schedule' => [
-                'subject_code' => $schedule->subject->subject_code,
-                'subject_description' => $schedule->subject->subject_description,
-                'type' => $schedule->subject->type,
-                'units' => $schedule->subject->credit_units,
-                'day' => $schedule->day,
-                'room' => $schedule->room->room_name,
-                'start_time' => $schedule->start_time,
-                'end_time' => $schedule->end_time,
-            ],
-            'message' => 'Schedule added successfully!',
-        ]);
+            'success' => false,
+            'conflict' => true,
+            'message' => 'Schedule conflict detected!',
+        ], 422);
     }
+
+    // Create the schedule
+    $schedule = Schedule::create($request->all());
+    $schedule->load('subject', 'room'); // Eager load related models
+
+    return response()->json([
+        'success' => true,
+        'schedule' => [
+            'subject_code' => $schedule->subject->subject_code,
+            'subject_description' => $schedule->subject->subject_description,
+            'type' => $schedule->subject->type,
+            'units' => $schedule->subject->credit_units,
+            'day' => $schedule->day,
+            'room' => $schedule->room->room_name,
+            'start_time' => $schedule->start_time,
+            'end_time' => $schedule->end_time,
+        ],
+        'message' => 'Schedule added successfully!',
+    ], 200);
+}
+
 
     public function update(Request $request, $id)
     {
