@@ -65,6 +65,9 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
     Route::put('/admin/schedules/{id}', [ScheduleController::class, 'update'])->name('admin.schedules.update');
     Route::get('/admin/schedules/{id}/edit', [ScheduleController::class, 'edit'])->name('admin.schedules.edit');
 
+    Route::get('/api/calendar-events', [CalendarEventController::class, 'fetchEvents'])->name('calendar-events.api');
+
+
     // Manage Calendar (Admin only)
     Route::prefix('/admin/calendar')->group(function () {
         Route::get('/', [CalendarEventController::class, 'index'])->name('admin.calendar-events.index');

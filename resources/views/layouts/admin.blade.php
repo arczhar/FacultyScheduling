@@ -75,7 +75,7 @@
                 </a>
             @endif
 
-            <!-- Manage Schedules Dropdown -->
+            
            <!-- Manage Schedules Dropdown -->
            <div class="dropdown">
                 <a href="#" 
@@ -87,10 +87,10 @@
                     Manage Schedules
                 </a>
                 <div class="dropdown-menu">
-                    <a href="{{ Auth::user()->role === 'Admin' ? route('admin.schedules.index') : route('programchair.schedules.index') }}" class="dropdown-item">
+                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.schedules.index') : route('programchair.schedules.index') }}" class="dropdown-item">
                         List of Schedules
                     </a>
-                    <a href="{{ Auth::user()->role === 'Admin' ? route('admin.schedules.create') : route('programchair.schedules.create') }}" class="dropdown-item">
+                    <a href="{{ Auth::user()->role === 'admin' ? route('admin.schedules.create') : route('programchair.schedules.create') }}" class="dropdown-item">
                         Add Schedule
                     </a>
                 </div>
