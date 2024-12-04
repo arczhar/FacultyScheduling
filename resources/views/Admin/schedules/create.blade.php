@@ -432,32 +432,36 @@ $(document).ready(function () {
     }
 
     // Dynamic end time options based on start time
+    // Dynamic end time options based on start time
     $('#start_time').change(function () {
-        const startTime = $(this).val();
-        console.log('Selected Start Time:', startTime);
+    const startTime = $(this).val();
+    console.log('Selected Start Time:', startTime);
 
-        const endTimeField = $('#end_time');
-        endTimeField.find('option').remove();
+    const endTimeField = $('#end_time');
+    endTimeField.find('option').remove(); // Clear previous options
 
         if (startTime) {
             const [startHours, startMinutes] = startTime.split(':').map(Number);
 
-            const startTotalMinutes = startHours * 60 + startMinutes;
-            for (let hours = 0; hours < 24; hours++) {
-                for (let minutes = 0; minutes < 60; minutes += 30) {
-                    const totalMinutes = hours * 60 + minutes;
-                    if (totalMinutes > startTotalMinutes) {
-                        const formattedTime = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-                        endTimeField.append(`<option value="${formattedTime}">${formattedTime}</option>`);
-                    }
-                }
+            // Calculate the end time one hour after the start time
+            let endHours = startHours + 1;
+            let endMinutes = startMinutes;
+
+            // Adjust if the end hour exceeds 23
+            if (endHours >= 24) {
+                endHours = 0;
             }
+
+            // Format the end time as HH:mm
+            const formattedEndTime = String(endHours).padStart(2, '0') + ':' + String(endMinutes).padStart(2, '0');
+            endTimeField.append(`<option value="${formattedEndTime}">${formattedEndTime}</option>`);
 
             endTimeField.prop('disabled', false);
         } else {
             endTimeField.prop('disabled', true);
         }
     });
+
 
     // Disable end time initially
     $('#end_time').prop('disabled', true);
