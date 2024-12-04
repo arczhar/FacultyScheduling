@@ -43,6 +43,9 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
         'destroy' => 'admin.rooms.destroy',
     ]);
 
+    Route::post('/admin/examroom/update-schedule', [ExamScheduleController::class, 'updateSchedule'])->name('examroom.updateSchedule');
+
+
     // Exam Room Management
     Route::prefix('/admin/examrm')->group(function () {
         Route::get('/examroom', [ExamScheduleController::class, 'index'])->name('admin.examrm.examroom');
