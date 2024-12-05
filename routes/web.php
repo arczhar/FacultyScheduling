@@ -46,12 +46,21 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
     Route::post('/admin/examroom/update-schedule', [ExamScheduleController::class, 'updateSchedule'])->name('examroom.updateSchedule');
 
 
+    Route::get('/admin/examroom', [ExamScheduleController::class, 'examRoomSchedule'])->name('admin.examroom.index');
+    Route::post('/admin/examroom', [ExamScheduleController::class, 'storeExamRoom'])->name('admin.examroom.store');
+    Route::put('/admin/examroom/{id}', [ExamScheduleController::class, 'updateExamRoom'])->name('admin.examroom.update');
+    Route::delete('/admin/examroom/{id}', [ExamScheduleController::class, 'destroyExamRoom'])->name('admin.examroom.destroy');
+
     // Exam Room Management
-    Route::prefix('/admin/examrm')->group(function () {
-        Route::get('/examroom', [ExamScheduleController::class, 'index'])->name('admin.examrm.examroom');
-        Route::get('/examroom/events', [ExamScheduleController::class, 'fetchEvents'])->name('admin.examrm.events');
-        Route::post('/examroom/store', [ExamScheduleController::class, 'store'])->name('admin.examrm.store');
-        Route::delete('/examroom/{id}', [ExamScheduleController::class, 'destroy'])->name('admin.examrm.destroy');
+    Route::prefix('/admin/examroom')->group(function () {
+        Route::get('/', [ExamScheduleController::class, 'index'])->name('admin.examroom.index');
+        Route::post('/', [ExamScheduleController::class, 'store'])->name('admin.examroom.store');
+        Route::get('/{examRoom}/edit', [ExamScheduleController::class, 'edit'])->name('admin.examroom.edit');
+        Route::put('/{examRoom}', [ExamScheduleController::class, 'update'])->name('admin.examroom.update');
+        Route::delete('/{examRoom}', [ExamScheduleController::class, 'destroy'])->name('admin.examroom.destroy');
+        
+    });
+    
     });
 
     // Schedule Management
@@ -79,7 +88,7 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
         Route::put('/{calendarEvent}', [CalendarEventController::class, 'update'])->name('admin.calendar-events.update');
         Route::delete('/{calendarEvent}', [CalendarEventController::class, 'destroy'])->name('admin.calendar-events.destroy');
     });
-});
+
 
 // Program Chair Routes
 Route::middleware(['auth:web', 'role:Program Chair'])->group(function () {

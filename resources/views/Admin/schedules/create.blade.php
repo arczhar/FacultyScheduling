@@ -326,7 +326,7 @@ $(document).ready(function () {
         },
         error: function (xhr) {
             console.error('Error:', xhr.responseText);
-            showModal('Error', 'An error occurred while saving the schedule.');
+            showModal('Conflict', 'Schedule Conflict is Detected');
         },
     };
 

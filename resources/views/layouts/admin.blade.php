@@ -107,7 +107,7 @@
                     </a>
                     <div class="dropdown-menu">
                         <a href="{{ route('admin.rooms.index') }}" class="dropdown-item">Manage Rooms</a>
-                        <a href="{{ route('admin.examrm.examroom') }}" class="dropdown-item">Manage Exam Rooms</a>
+                        <a href="{{ route('admin.examroom.index') }}" class="dropdown-item">Manage Exam Rooms</a>
                     </div>
                 </div>
             @endif
