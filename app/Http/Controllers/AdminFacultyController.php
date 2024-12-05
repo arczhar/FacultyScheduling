@@ -79,7 +79,25 @@ class AdminFacultyController extends Controller
         ]);
     }
 
-        
+    public function destroy($id)
+    {
+        try {
+            $faculty = Faculty::findOrFail($id);
+            $faculty->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Faculty deleted successfully!',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete faculty. Please try again.',
+            ], 500);
+        }
+    }
+
+    
         
 
 }
