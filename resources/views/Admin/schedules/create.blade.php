@@ -19,7 +19,7 @@
     <div class="container mt-4">
         <h1 class="mb-4">Add Schedule</h1>
 
-        <!-- Validation Modal -->
+        
         <!-- Validation Modal -->
         <div class="modal fade" id="validationModal" tabindex="-1" role="dialog" aria-labelledby="validationModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
