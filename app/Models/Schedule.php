@@ -18,10 +18,12 @@ class Schedule extends Model
         'faculty_id',
         'subject_id',
         'room_id',
+        'section_id', // Add this
         'start_time',
         'end_time',
         'day',
     ];
+    
 
     // Define relationships if not already done
     public function faculty()
@@ -38,4 +40,10 @@ class Schedule extends Model
     {
         return $this->belongsTo(Room::class);
     }
+   
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
+}   
+
 }

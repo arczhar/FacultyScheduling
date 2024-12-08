@@ -8,6 +8,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AdminFacultyController;
 use App\Http\Controllers\ExamScheduleController;
 use App\Http\Controllers\CalendarEventController;
+use App\Http\Controllers\AdminSectionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -79,6 +80,19 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
 
     Route::get('/api/calendar-events', [CalendarEventController::class, 'fetchEvents'])->name('calendar-events.api');
 
+    //Manage Section
+    // Resource routes for sections
+    Route::resource('/admin/sections', AdminSectionController::class)->names([
+    'index' => 'admin.sections.index',
+    'store' => 'admin.sections.store',
+    'show' => 'admin.sections.show',
+    'update' => 'admin.sections.update',
+    'destroy' => 'admin.sections.destroy',
+    ]);
+
+    // Additional route if needed
+    Route::get('/admin/section', [AdminSectionController::class, 'index'])->name('admin.section.index');
+    
 
     // Manage Calendar (Admin only)
     Route::prefix('/admin/calendar')->group(function () {

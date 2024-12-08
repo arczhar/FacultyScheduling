@@ -6,6 +6,7 @@ use App\Models\Schedule;
 use App\Models\Faculty;
 use App\Models\Subject;
 use App\Models\Room;
+use App\Models\Section;
 use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
@@ -17,26 +18,30 @@ class ScheduleController extends Controller
     }
 
     public function show($id)
-    {
-        $schedule = Schedule::with(['subject', 'room'])->findOrFail($id);
+{
+    $schedule = Schedule::with(['subject', 'room', 'section'])->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'schedule' => [
-                'id' => $schedule->id,
-                'subject_id' => $schedule->subject_id,
-                'subject_code' => $schedule->subject->subject_code,
-                'subject_description' => $schedule->subject->subject_description,
-                'type' => $schedule->subject->type,
-                'units' => $schedule->subject->credit_units,
-                'room_id' => $schedule->room_id,
-                'room_name' => $schedule->room->room_name,
-                'day' => $schedule->day,
-                'start_time' => $schedule->start_time,
-                'end_time' => $schedule->end_time,
-            ],
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'schedule' => [
+            'id' => $schedule->id,
+            'subject_id' => $schedule->subject_id,
+            'subject_code' => $schedule->subject->subject_code,
+            'subject_description' => $schedule->subject->subject_description,
+            'type' => $schedule->subject->type,
+            'units' => $schedule->subject->credit_units,
+            'room_id' => $schedule->room_id,
+            'room_name' => $schedule->room->room_name,
+            'section_id' => $schedule->section_id,
+            'section_name' => $schedule->section->section_name ?? 'N/A',
+            'day' => $schedule->day,
+            'start_time' => $schedule->start_time,
+            'end_time' => $schedule->end_time,
+        ],
+    ]);
+}
+
+    
 
 
 
@@ -45,8 +50,11 @@ class ScheduleController extends Controller
         $faculties = Faculty::all();
         $subjects = Subject::all();
         $rooms = Room::all();
-        return view('admin.schedules.create', compact('faculties', 'subjects', 'rooms'));
+        $sections = Section::all(); // Fetch all sections
+
+        return view('admin.schedules.create', compact('faculties', 'subjects', 'rooms', 'sections'));
     }
+
 
     public function checkAndSaveSchedule(Request $request)
     {
@@ -91,23 +99,16 @@ class ScheduleController extends Controller
         'faculty_id' => 'required|exists:faculty,id',
         'subject_id' => 'required|exists:subjects,id',
         'room_id' => 'required|exists:rooms,id',
+        'section_id' => 'required|exists:sections,id', // Validate section_id
         'start_time' => 'required|date_format:H:i',
         'end_time' => 'required|date_format:H:i|after:start_time',
         'day' => 'required',
     ]);
 
-    // Check for schedule conflict
-    if ($this->hasConflict($request->all())) {
-        return response()->json([
-            'success' => false,
-            'conflict' => true,
-            'message' => 'Schedule conflict detected!',
-        ], 422);
-    }
+    \Log::info('Incoming Data:', $request->all()); // Log all incoming data
 
-    // Create the schedule
-    $schedule = Schedule::create($request->all());
-    $schedule->load('subject', 'room'); // Eager load related models
+    $schedule = Schedule::create($request->all()); // Create the schedule
+    $schedule->load('subject', 'room', 'section'); // Load relationships for response
 
     return response()->json([
         'success' => true,
@@ -118,6 +119,7 @@ class ScheduleController extends Controller
             'units' => $schedule->subject->credit_units,
             'day' => $schedule->day,
             'room' => $schedule->room->room_name,
+            'section_name' => $schedule->section->section_name ?? 'N/A', // Include section_name
             'start_time' => $schedule->start_time,
             'end_time' => $schedule->end_time,
         ],
@@ -125,6 +127,7 @@ class ScheduleController extends Controller
     ], 200);
 }
 
+    
 
     public function update(Request $request, $id)
     {
@@ -173,37 +176,32 @@ class ScheduleController extends Controller
     }
 
     public function getFacultyDetails(Request $request, $facultyId)
-    {
-        $page = $request->input('page', 1);
-        $perPage = 5;
+{
+    $faculty = Faculty::with(['schedules.subject', 'schedules.room', 'schedules.section'])->findOrFail($facultyId);
 
-        $faculty = Faculty::with(['schedules.subject', 'schedules.room'])->findOrFail($facultyId);
+    $paginatedSchedules = $faculty->schedules->map(function ($schedule) {
+        return [
+            'id' => $schedule->id,
+            'subject_code' => $schedule->subject->subject_code ?? 'N/A',
+            'subject_description' => $schedule->subject->subject_description ?? 'N/A',
+            'type' => $schedule->subject->type ?? 'N/A',
+            'units' => $schedule->subject->credit_units ?? 'N/A',
+            'day' => $schedule->day ?? 'N/A',
+            'room' => $schedule->room->room_name ?? 'N/A',
+            'time' => ($schedule->start_time && $schedule->end_time) 
+                ? $schedule->start_time . ' - ' . $schedule->end_time 
+                : 'N/A',
+            'section_name' => $schedule->section->section_name ?? 'N/A', // Correctly fetch the section name
+        ];
+    });
 
-        $paginatedSchedules = $faculty->schedules->map(function ($schedule) {
-            return [
-                'id' => $schedule->id, // Add this line to include the schedule ID
-                'subject_code' => $schedule->subject->subject_code ?? 'N/A',
-                'subject_description' => $schedule->subject->subject_description ?? 'N/A',
-                'type' => $schedule->subject->type ?? 'N/A',
-                'units' => $schedule->subject->credit_units ?? 'N/A',
-                'day' => $schedule->day ?? 'N/A',
-                'room' => $schedule->room->room_name ?? 'N/A',
-                'start_time' => $schedule->start_time ?? 'N/A',
-                'end_time' => $schedule->end_time ?? 'N/A',
-            ];
-        })->forPage($page, $perPage);
+    return response()->json([
+        'position' => $faculty->position,
+        'schedules' => $paginatedSchedules->values(),
+    ]);
+}
 
-        return response()->json([
-            'position' => $faculty->position,
-            'schedules' => $paginatedSchedules->values(),
-            'pagination' => [
-                'total' => $faculty->schedules->count(),
-                'per_page' => $perPage,
-                'current_page' => $page,
-                'last_page' => ceil($faculty->schedules->count() / $perPage),
-            ],
-        ]);
-    }
+
 
     public function getSubjects()
     {

@@ -108,6 +108,7 @@
                         <th>Day</th>
                         <th>Room</th>
                         <th>Time</th>
+                        <th>Section</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -115,6 +116,18 @@
                     <!-- Auto-filled rows will appear here -->
                 </tbody>
             </table>
+
+            <div class="form-group col-md-6">
+    <label for="section_id">Section</label>
+    <select class="form-control" id="section_id" name="section_id" required>
+        <option value="">Select Section</option>
+        @foreach($sections as $section)
+            <option value="{{ $section->id }}">{{ $section->section_name }}</option>
+        @endforeach
+    </select>
+</div>
+
+
 
             <!-- Subject Selection -->
             <div class="form-row">
@@ -306,10 +319,13 @@ $(document).ready(function () {
     const isUpdate = buttonId === 'update_schedule_button';
     const scheduleId = $('#addScheduleForm').data('schedule-id'); // Retrieve schedule ID for updates
 
+    const formData = $('#addScheduleForm').serialize();
+    console.log('Form Data:', formData); // Log the serialized form data to confirm section_id is included
+
     const ajaxOptions = {
         url: isUpdate ? `/admin/schedules/${scheduleId}` : '/admin/schedules',
         method: isUpdate ? 'PUT' : 'POST',
-        data: $('#addScheduleForm').serialize(),
+        data: formData,
         success: function (response) {
             if (response.success) {
                 if (isUpdate) {
@@ -335,54 +351,51 @@ $(document).ready(function () {
 });
 
 
+
     // Handle edit button click
     $(document).on('click', '.edit-schedule', function () {
-        const scheduleId = $(this).data('id'); // Retrieve schedule ID
-        console.log('Schedule ID:', scheduleId);
+    const scheduleId = $(this).data('id');
+    $.ajax({
+        url: `/admin/schedules/${scheduleId}`,
+        method: 'GET',
+        success: function (response) {
+            if (response.success) {
+                const schedule = response.schedule;
 
-        if (!scheduleId) {
-            alert('Schedule ID is missing!');
-            return;
-        }
+                // Populate form fields
+                $('#subject_code').val(schedule.subject_id).change();
+                $('#subject_description').val(schedule.subject_description);
+                $('#subject_type').val(schedule.type);
+                $('#subject_units').val(schedule.units);
+                $('#day').val(schedule.day);
+                $('#start_time').val(schedule.start_time);
+                $('#end_time').val(schedule.end_time);
+                $('#room_id').val(schedule.room_id);
+                $('#section_id').val(schedule.section_id).change(); // Populate section dropdown
 
-        $.ajax({
-            url: `/admin/schedules/${scheduleId}`,
-            method: 'GET',
-            success: function (response) {
-                if (response.success) {
-                    const schedule = response.schedule;
+                // Attach schedule ID for updates
+                $('#addScheduleForm').data('schedule-id', scheduleId);
 
-                    // Populate form fields
-                    $('#subject_code').val(schedule.subject_id).change();
-                    $('#subject_description').val(schedule.subject_description);
-                    $('#subject_type').val(schedule.type);
-                    $('#subject_units').val(schedule.units);
-                    $('#day').val(schedule.day);
-                    $('#start_time').val(schedule.start_time);
-                    $('#end_time').val(schedule.end_time);
-                    $('#room_id').val(schedule.room_id);
-
-                    // Attach schedule ID for updates
-                    $('#addScheduleForm').data('schedule-id', scheduleId);
-
-                    // Switch to update mode
-                    $('#add_schedule_button').text('Update Schedule').attr('id', 'update_schedule_button');
-                } else {
-                    alert('Failed to fetch schedule details.');
-                }
-            },
-            error: function (xhr) {
-                console.error('Error fetching schedule details:', xhr.responseText);
-                alert('An error occurred while fetching schedule details.');
-            },
-        });
+                // Switch to update mode
+                $('#add_schedule_button').text('Update Schedule').attr('id', 'update_schedule_button');
+            } else {
+                alert('Failed to fetch schedule details.');
+            }
+        },
+        error: function (xhr) {
+            console.error('Error fetching schedule details:', xhr.responseText);
+            alert('An error occurred while fetching schedule details.');
+        },
     });
+});
 
+
+    
     // Populate faculty schedule table
     function populateScheduleTable(schedules) {
-        let html = '';
+    let html = '';
         if (schedules.length === 0) {
-            html = `<tr><td colspan="8" class="text-center">No schedule available</td></tr>`;
+            html = `<tr><td colspan="9" class="text-center">No schedule available</td></tr>`;
         } else {
             schedules.forEach(schedule => {
                 html += `
@@ -393,7 +406,8 @@ $(document).ready(function () {
                         <td>${schedule.units}</td>
                         <td>${schedule.day}</td>
                         <td>${schedule.room}</td>
-                        <td>${schedule.start_time} - ${schedule.end_time}</td>
+                        <td>${schedule.time || 'N/A'}</td>
+                        <td>${schedule.section_name || 'N/A'}</td> <!-- Correctly display section -->
                         <td>
                             <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
                             <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
@@ -404,17 +418,22 @@ $(document).ready(function () {
         $('#schedule_table_body').html(html);
     }
 
+
+
+
     // Reset form fields
     function resetScheduleFields() {
-        $('#subject_code').val('');
-        $('#subject_description').val('');
-        $('#subject_type').val('');
-        $('#subject_units').val('');
-        $('#day').val('Monday');
-        $('#start_time').val('');
-        $('#end_time').val('');
-        $('#room_id').val('');
-    }
+    $('#subject_code').val('');
+    $('#subject_description').val('');
+    $('#subject_type').val('');
+    $('#subject_units').val('');
+    $('#day').val('Monday');
+    $('#start_time').val('');
+    $('#end_time').val('');
+    $('#room_id').val('');
+    $('#section_id').val(''); // Reset section dropdown
+}
+
 
     // Show modal with message
     function showModal(title, message) {
@@ -457,42 +476,44 @@ $(document).ready(function () {
 
     // Disable end time initially
     $('#end_time').prop('disabled', true);
-
     function appendScheduleRow(schedule) {
-        const row = `
-            <tr id="schedule-row-${schedule.id}">
-                <td>${schedule.subject_code || 'N/A'}</td>
-                <td>${schedule.subject_description || 'N/A'}</td>
-                <td>${schedule.type || 'N/A'}</td>
-                <td>${schedule.units || 'N/A'}</td>
-                <td>${schedule.day || 'N/A'}</td>
-                <td>${schedule.room || 'N/A'}</td>
-                <td>${schedule.start_time || ''} - ${schedule.end_time || ''}</td>
-                <td>
-                    <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
-                    <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
-                </td>
-            </tr>`;
-        $('#schedule_table_body').append(row);
-    }
+    const row = `
+        <tr id="schedule-row-${schedule.id}">
+            <td>${schedule.subject_code || 'N/A'}</td>
+            <td>${schedule.subject_description || 'N/A'}</td>
+            <td>${schedule.type || 'N/A'}</td>
+            <td>${schedule.units || 'N/A'}</td>
+            <td>${schedule.day || 'N/A'}</td>
+            <td>${schedule.room || 'N/A'}</td>
+            <td>${schedule.start_time || ''} - ${schedule.end_time || ''}</td>
+            <td>${schedule.section_name || 'N/A'}</td> <!-- Corrected to 'section_name' -->
+            <td>
+                <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
+                <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
+            </td>
+        </tr>`;
+    $('#schedule_table_body').append(row);
+}
 
-    function updateScheduleRow(scheduleId, schedule) {
-        const row = `
-            <tr id="schedule-row-${scheduleId}">
-                <td>${schedule.subject_code || 'N/A'}</td>
-                <td>${schedule.subject_description || 'N/A'}</td>
-                <td>${schedule.type || 'N/A'}</td>
-                <td>${schedule.units || 'N/A'}</td>
-                <td>${schedule.day || 'N/A'}</td>
-                <td>${schedule.room || 'N/A'}</td>
-                <td>${schedule.start_time || ''} - ${schedule.end_time || ''}</td>
-                <td>
-                    <button class="btn btn-warning btn-sm edit-schedule" data-id="${scheduleId}">Edit</button>
-                    <button class="btn btn-danger btn-sm delete-schedule" data-id="${scheduleId}">Delete</button>
-                </td>
-            </tr>`;
-        $(`#schedule-row-${scheduleId}`).replaceWith(row);
-    }
+
+function updateScheduleRow(scheduleId, schedule) {
+    const row = `
+        <tr id="schedule-row-${scheduleId}">
+            <td>${schedule.subject_code || 'N/A'}</td>
+            <td>${schedule.subject_description || 'N/A'}</td>
+            <td>${schedule.type || 'N/A'}</td>
+            <td>${schedule.units || 'N/A'}</td>
+            <td>${schedule.day || 'N/A'}</td>
+            <td>${schedule.room || 'N/A'}</td>
+            <td>${schedule.start_time || ''} - ${schedule.end_time || ''}</td>
+            <td>${schedule.section || 'N/A'}</td> <!-- Display section -->
+            <td>
+                <button class="btn btn-warning btn-sm edit-schedule" data-id="${scheduleId}">Edit</button>
+                <button class="btn btn-danger btn-sm delete-schedule" data-id="${scheduleId}">Delete</button>
+            </td>
+        </tr>`;
+    $(`#schedule-row-${scheduleId}`).replaceWith(row);
+}
 });
 
 </script>

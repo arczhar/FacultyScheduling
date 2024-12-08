@@ -13,16 +13,15 @@ return new class extends Migration
     {
         Schema::create('exam_schedules', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('room_id'); // Reference to exam_rooms
             $table->unsignedBigInteger('subject_id'); // Reference to subjects
-            $table->string('time_slot'); // Time slot column
-            $table->date('exam_date')->nullable(); // Optional if only room and time slot are needed
+            $table->string('time_slot');
+            $table->date('exam_date')->nullable();
             $table->timestamps();
-
-            // Foreign key constraints
-            $table->foreign('room_id')->references('id')->on('exam_rooms')->onDelete('cascade');
+        
+            // Foreign key constraint for subject_id only
             $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('cascade');
         });
+        
     }
 
     /**

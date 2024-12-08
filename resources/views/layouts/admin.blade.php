@@ -75,6 +75,12 @@
                 </a>
             @endif
 
+               <!-- Manage Sections -->
+               @if(Auth::user()->role === 'admin')
+                <a href="{{ route('admin.section.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.section.index') ? 'bg-dark' : '' }}">
+                    Manage Sections
+                </a>
+            @endif
             
            <!-- Manage Schedules Dropdown -->
            <div class="dropdown">
