@@ -129,39 +129,44 @@ class ScheduleController extends Controller
 
     
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'faculty_id' => 'required|exists:faculty,id',
-            'subject_id' => 'required|exists:subjects,id',
-            'room_id' => 'required|exists:rooms,id',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'day' => 'required',
-        ]);
-    
-        $schedule = Schedule::findOrFail($id);
-    
-        // Check for conflicts (optional, based on your logic)
-    
-        $schedule->update($request->all());
-    
-        return response()->json([
-            'success' => true,
-            'message' => 'Schedule updated successfully!',
-            'schedule' => [
-                'id' => $schedule->id,
-                'subject_code' => $schedule->subject->subject_code,
-                'subject_description' => $schedule->subject->subject_description,
-                'type' => $schedule->subject->type,
-                'units' => $schedule->subject->credit_units,
-                'day' => $schedule->day,
-                'room' => $schedule->room->room_name,
-                'start_time' => $schedule->start_time,
-                'end_time' => $schedule->end_time,
-            ],
-        ]);
-    }
+public function update(Request $request, $id)
+{
+    $request->validate([
+        'faculty_id' => 'required|exists:faculty,id',
+        'subject_id' => 'required|exists:subjects,id',
+        'room_id' => 'required|exists:rooms,id',
+        'section_id' => 'required|exists:sections,id', // Validate section_id
+        'start_time' => 'required|date_format:H:i',
+        'end_time' => 'required|date_format:H:i|after:start_time',
+        'day' => 'required',
+    ]);
+
+    $schedule = Schedule::findOrFail($id);
+
+    // Update the schedule with the new data
+    $schedule->update($request->all());
+
+    // Reload relationships for the response
+    $schedule->load('subject', 'room', 'section');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Schedule updated successfully!',
+        'schedule' => [
+            'id' => $schedule->id,
+            'subject_code' => $schedule->subject->subject_code,
+            'subject_description' => $schedule->subject->subject_description,
+            'type' => $schedule->subject->type,
+            'units' => $schedule->subject->credit_units,
+            'day' => $schedule->day,
+            'room' => $schedule->room->room_name,
+            'section_name' => $schedule->section->section_name ?? 'N/A', // Include section_name
+            'start_time' => $schedule->start_time,
+            'end_time' => $schedule->end_time,
+        ],
+    ]);
+}
+
     
 
     public function destroy($id)

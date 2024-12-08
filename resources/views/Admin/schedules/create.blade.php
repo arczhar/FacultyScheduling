@@ -506,7 +506,7 @@ function updateScheduleRow(scheduleId, schedule) {
             <td>${schedule.day || 'N/A'}</td>
             <td>${schedule.room || 'N/A'}</td>
             <td>${schedule.start_time || ''} - ${schedule.end_time || ''}</td>
-            <td>${schedule.section || 'N/A'}</td> <!-- Display section -->
+            <td>${schedule.section_name || 'N/A'}</td> <!-- Ensure section_name is updated -->
             <td>
                 <button class="btn btn-warning btn-sm edit-schedule" data-id="${scheduleId}">Edit</button>
                 <button class="btn btn-danger btn-sm delete-schedule" data-id="${scheduleId}">Delete</button>
@@ -514,6 +514,7 @@ function updateScheduleRow(scheduleId, schedule) {
         </tr>`;
     $(`#schedule-row-${scheduleId}`).replaceWith(row);
 }
+
 });
 
 </script>
