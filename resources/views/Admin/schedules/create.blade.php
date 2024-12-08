@@ -21,24 +21,26 @@
 
         
         <!-- Validation Modal -->
-        <div class="modal fade" id="validationModal" tabindex="-1" role="dialog" aria-labelledby="validationModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="validationModalLabel">Message</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Dynamic message will be displayed here -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
+        <!-- Validation Modal -->
+<div class="modal fade" id="validationModal" tabindex="-1" role="dialog" aria-labelledby="validationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="validationModalLabel">Message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Dynamic message will be displayed here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
+    </div>
+</div>
+
         <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -341,9 +343,27 @@ $(document).ready(function () {
             }
         },
         error: function (xhr) {
-            console.error('Error:', xhr.responseText);
-            showModal('Conflict', 'Schedule Conflict is Detected');
-        },
+    try {
+        // Attempt to parse the JSON response
+        const response = JSON.parse(xhr.responseText);
+            console.log("Error Response:", response); // Log the parsed response for debugging
+
+                // Check if the response contains a message array
+                if (response.message && Array.isArray(response.message)) {
+                    const detailedMessages = response.message.map(msg => `<li>${msg}</li>`).join('');
+                    showModal('Conflict Detected', `<ul>${detailedMessages}</ul>`); // Render as HTML
+                } else if (response.message) {
+                    showModal('Error', response.message); // Display single message
+                } else {
+                    showModal('Error', 'An unexpected error occurred.');
+                }
+            } catch (e) {
+                console.error('Error Parsing Response:', e, xhr.responseText);
+                showModal('Error', 'An unexpected error occurred.');
+            }
+        }
+
+
     };
 
     // Execute AJAX request
@@ -437,12 +457,13 @@ $(document).ready(function () {
 
     // Show modal with message
     function showModal(title, message) {
-        $('#validationModal .modal-title').text(title);
-        $('#validationModal .modal-body').text(message);
-        $('#validationModal').modal('show');
-    }
+    $('#validationModal .modal-title').text(title);
+    $('#validationModal .modal-body').html(message); // Use .html() to render the HTML content
+    $('#validationModal').modal('show');
+}
 
-    // Dynamic end time options based on start time
+
+
     // Dynamic end time options based on start time
     $('#start_time').change(function () {
     const startTime = $(this).val();
@@ -451,27 +472,22 @@ $(document).ready(function () {
     const endTimeField = $('#end_time');
     endTimeField.find('option').remove(); // Clear previous options
 
-        if (startTime) {
-            const [startHours, startMinutes] = startTime.split(':').map(Number);
+    if (startTime) {
+        const [startHours, startMinutes] = startTime.split(':').map(Number);
 
-            // Calculate the end time one hour after the start time
-            let endHours = startHours + 1;
-            let endMinutes = startMinutes;
-
-            // Adjust if the end hour exceeds 23
-            if (endHours >= 24) {
-                endHours = 0;
-            }
-
-            // Format the end time as HH:mm
-            const formattedEndTime = String(endHours).padStart(2, '0') + ':' + String(endMinutes).padStart(2, '0');
+        // Loop to generate all end time options after the start time
+        for (let hours = startHours + 1; hours <= 24; hours++) {
+            let endHours = hours % 24; // Ensure it wraps around midnight
+            let formattedEndTime = String(endHours).padStart(2, '0') + ':00';
             endTimeField.append(`<option value="${formattedEndTime}">${formattedEndTime}</option>`);
-
-            endTimeField.prop('disabled', false);
-        } else {
-            endTimeField.prop('disabled', true);
         }
-    });
+
+        endTimeField.prop('disabled', false);
+    } else {
+        endTimeField.prop('disabled', true);
+    }
+});
+
 
 
     // Disable end time initially
