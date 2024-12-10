@@ -52,15 +52,16 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
     Route::put('/admin/examroom/{id}', [ExamScheduleController::class, 'updateExamRoom'])->name('admin.examroom.update');
     Route::delete('/admin/examroom/{id}', [ExamScheduleController::class, 'destroyExamRoom'])->name('admin.examroom.destroy');
 
-    // Exam Room Management
     Route::prefix('/admin/examroom')->group(function () {
         Route::get('/', [ExamScheduleController::class, 'index'])->name('admin.examroom.index');
+        Route::get('/create', [ExamScheduleController::class, 'create'])->name('admin.examroom.create');
         Route::post('/', [ExamScheduleController::class, 'store'])->name('admin.examroom.store');
-        Route::get('/{examRoom}/edit', [ExamScheduleController::class, 'edit'])->name('admin.examroom.edit');
-        Route::put('/{examRoom}', [ExamScheduleController::class, 'update'])->name('admin.examroom.update');
-        Route::delete('/{examRoom}', [ExamScheduleController::class, 'destroy'])->name('admin.examroom.destroy');
-        
+        Route::get('/{examSchedule}/edit', [ExamScheduleController::class, 'edit'])->name('admin.examroom.edit');
+        Route::put('/{examSchedule}', [ExamScheduleController::class, 'update'])->name('admin.examroom.update');
+        Route::delete('/{examSchedule}', [ExamScheduleController::class, 'destroy'])->name('admin.examroom.destroy');
     });
+    
+
     
     });
 
