@@ -305,7 +305,9 @@ class ScheduleController extends Controller
 
             return $conflicts;
         }
-        private function checkForConflicts($data, $excludeId = null)
+       
+       
+     private function checkForConflicts($data, $excludeId = null)
         {
             $messages = [];
         
@@ -364,7 +366,7 @@ class ScheduleController extends Controller
             }
         
             return $messages;
-        }
+    }
         
 
 }

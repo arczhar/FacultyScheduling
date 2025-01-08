@@ -173,34 +173,48 @@
                     </select>
                 </div>
                 <div class="form-group col-md-3">
-                        <label for="start_time">Start Time</label>
-                        <select id="start_time" name="start_time" class="form-control" required>
-                            <option value="">Select Start Time</option>
-                            <option value="07:00">07:00</option>
-                            <option value="08:00">08:00</option>
-                            <option value="09:00">09:00</option>
-                            <option value="10:00">10:00</option>
-                            <option value="11:00">11:00</option>
-                            <option value="12:00">12:00</option>
-                            <option value="13:00">13:00</option>
-                            <option value="14:00">14:00</option>
-                            <option value="15:00">15:00</option>
-                            <option value="16:00">16:00</option>
-                            <option value="17:00">17:00</option>
-                            <option value="18:00">18:00</option>
-                            <option value="19:00">19:00</option>
-                            <option value="20:00">20:00</option>
+                    <label for="start_time">Start Time</label>
+                    <select id="start_time" name="start_time" class="form-control" required>
+                        <option value="">Select Start Time</option>
+                        <option value="07:00">07:00 AM</option>
+                        <option value="08:00">08:00 AM</option>
+                        <option value="09:00">09:00 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="12:00">12:00 PM</option>
+                        <option value="13:00">01:00 PM</option>
+                        <option value="14:00">02:00 PM</option>
+                        <option value="15:00">03:00 PM</option>
+                        <option value="16:00">04:00 PM</option>
+                        <option value="17:00">05:00 PM</option>
+                        <option value="18:00">06:00 PM</option>
+                        <option value="19:00">07:00 PM</option>
+                        <option value="20:00">08:00 PM</option>
+                    </select>
+                </div>
 
-                            <!-- Add other time intervals -->
-                        </select>
-                    </div>
-                    <div class="form-group col-md-3">
-                        <label for="end_time">End Time</label>
-                        <select id="end_time" name="end_time" class="form-control" required>
-                            <option value="">Select End Time</option>
-                            <!-- Options dynamically populated -->
-                        </select>
-                    </div>
+                <div class="form-group col-md-3">
+                    <label for="end_time">End Time</label>
+                    <select id="end_time" name="end_time" class="form-control" required>
+                        <option value="">Select End Time</option>
+                        <option value="08:00">08:00 AM</option>
+                        <option value="09:00">09:00 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="12:00">12:00 PM</option>
+                        <option value="13:00">01:00 PM</option>
+                        <option value="14:00">02:00 PM</option>
+                        <option value="15:00">03:00 PM</option>
+                        <option value="16:00">04:00 PM</option>
+                        <option value="17:00">05:00 PM</option>
+                        <option value="18:00">06:00 PM</option>
+                        <option value="19:00">07:00 PM</option>
+                        <option value="20:00">08:00 PM</option>
+                        <option value="21:00">09:00 PM</option>
+                        <option value="22:00">10:00 PM</option>
+                        <option value="23:00">11:00 PM</option>
+                    </select>
+                </div>
 
                 <div class="form-group col-md-3">
                     <label for="room_id">Room</label>
@@ -409,36 +423,46 @@ $(document).ready(function () {
     });
 });
 
+    // Function to convert 24-hour time to 12-hour time format
+function convertTo12HourFormat(time24) {
+    const [hours, minutes] = time24.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = (hours % 12) || 12; // Convert to 12-hour format
+    const formattedHours = hours12.toString().padStart(2, '0');
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    return `${formattedHours}:${formattedMinutes} ${period}`;
+}
 
     
     // Populate faculty schedule table
     function populateScheduleTable(schedules) {
     let html = '';
-        if (schedules.length === 0) {
-            html = `<tr><td colspan="9" class="text-center">No schedule available</td></tr>`;
-        } else {
-            schedules.forEach(schedule => {
-                html += `
-                    <tr id="schedule-row-${schedule.id}">
-                        <td>${schedule.subject_code}</td>
-                        <td>${schedule.subject_description}</td>
-                        <td>${schedule.type}</td>
-                        <td>${schedule.units}</td>
-                        <td>${schedule.day}</td>
-                        <td>${schedule.room}</td>
-                        <td>${schedule.time || 'N/A'}</td>
-                        <td>${schedule.section_name || 'N/A'}</td> <!-- Correctly display section -->
-                        <td>
-                            <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
-                            <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
-                        </td>
-                    </tr>`;
-            });
-        }
-        $('#schedule_table_body').html(html);
+    if (schedules.length === 0) {
+        html = `<tr><td colspan="9" class="text-center">No schedule available</td></tr>`;
+    } else {
+        schedules.forEach(schedule => {
+            const startTime12Hour = schedule.start_time ? convertTo12HourFormat(schedule.start_time) : 'N/A';
+            const endTime12Hour = schedule.end_time ? convertTo12HourFormat(schedule.end_time) : 'N/A';
+            
+            html += `
+                <tr id="schedule-row-${schedule.id}">
+                    <td>${schedule.subject_code}</td>
+                    <td>${schedule.subject_description}</td>
+                    <td>${schedule.type}</td>
+                    <td>${schedule.units}</td>
+                    <td>${schedule.day}</td>
+                    <td>${schedule.room}</td>
+                    <td>${startTime12Hour} - ${endTime12Hour}</td>
+                    <td>${schedule.section_name || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
+                        <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
+                    </td>
+                </tr>`;
+        });
     }
-
-
+    $('#schedule_table_body').html(html);
+}
 
 
     // Reset form fields
@@ -463,35 +487,6 @@ $(document).ready(function () {
 }
 
 
-
-    // Dynamic end time options based on start time
-    $('#start_time').change(function () {
-    const startTime = $(this).val();
-    console.log('Selected Start Time:', startTime);
-
-    const endTimeField = $('#end_time');
-    endTimeField.find('option').remove(); // Clear previous options
-
-    if (startTime) {
-        const [startHours, startMinutes] = startTime.split(':').map(Number);
-
-        // Loop to generate all end time options after the start time
-        for (let hours = startHours + 1; hours <= 24; hours++) {
-            let endHours = hours % 24; // Ensure it wraps around midnight
-            let formattedEndTime = String(endHours).padStart(2, '0') + ':00';
-            endTimeField.append(`<option value="${formattedEndTime}">${formattedEndTime}</option>`);
-        }
-
-        endTimeField.prop('disabled', false);
-    } else {
-        endTimeField.prop('disabled', true);
-    }
-});
-
-
-
-    // Disable end time initially
-    $('#end_time').prop('disabled', true);
     function appendScheduleRow(schedule) {
     const row = `
         <tr id="schedule-row-${schedule.id}">
