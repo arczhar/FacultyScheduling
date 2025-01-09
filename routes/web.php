@@ -130,6 +130,50 @@ Route::middleware(['auth:faculty'])->group(function () {
     Route::post('/faculty/change-password', [FacultyController::class, 'updatePassword'])->name('faculty.update-password');
 });
 
+// Program Chair Routes
+Route::middleware(['auth:web', 'role:Program Chair'])->group(function () {
+    // Dashboard
+    Route::get('/program-chair/dashboard', [CalendarEventController::class, 'programChairDashboard'])->name('programchair.dashboard');
+
+    // Manage Subjects
+    Route::resource('/program-chair/subjects', SubjectController::class)->names([
+        'index' => 'programchair.subjects.index',
+        'store' => 'programchair.subjects.store',
+        'edit' => 'programchair.subjects.edit',
+        'update' => 'programchair.subjects.update',
+        'destroy' => 'programchair.subjects.destroy',
+    ]);
+
+    // Manage Sections
+    Route::resource('/program-chair/sections', AdminSectionController::class)->names([
+        'index' => 'programchair.sections.index',
+        'store' => 'programchair.sections.store',
+        'show' => 'programchair.sections.show',
+        'update' => 'programchair.sections.update',
+        'destroy' => 'programchair.sections.destroy',
+    ]);
+
+    // Manage Rooms
+    Route::resource('/program-chair/rooms', RoomController::class)->names([
+        'index' => 'programchair.rooms.index',
+        'store' => 'programchair.rooms.store',
+        'update' => 'programchair.rooms.update',
+        'destroy' => 'programchair.rooms.destroy',
+    ]);
+
+    // Manage Calendar Events
+    Route::prefix('/program-chair/calendar')->group(function () {
+        Route::get('/', [CalendarEventController::class, 'index'])->name('programchair.calendar-events.index');
+        Route::post('/', [CalendarEventController::class, 'store'])->name('programchair.calendar-events.store');
+        Route::get('/{calendarEvent}/edit', [CalendarEventController::class, 'edit'])->name('programchair.calendar-events.edit');
+        Route::put('/{calendarEvent}', [CalendarEventController::class, 'update'])->name('programchair.calendar-events.update');
+        Route::delete('/{calendarEvent}', [CalendarEventController::class, 'destroy'])->name('programchair.calendar-events.destroy');
+    });
+
+   
+});
+
+
 // AJAX Routes
 Route::get('/get-faculty-details/{facultyId}', [ScheduleController::class, 'getFacultyDetails'])->name('get-faculty-details');
 Route::get('/get-subject-details/{id}', [SubjectController::class, 'getSubjectDetails'])->name('get-subject-details');

@@ -69,14 +69,15 @@
             @endif
 
             <!-- Manage Subjects -->
-            @if(Auth::user()->role === 'admin')
-                <a href="{{ route('admin.subjects.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.subjects.index') ? 'bg-dark' : '' }}">
+            @if(Auth::user()->role === 'admin' || Auth::user()->role === 'program chair')
+                <a href="{{ Auth::user()->role === 'admin' ? route('admin.subjects.index') : route('programchair.subjects.index') }}"
+                class="d-block p-2 text-white {{ request()->routeIs(Auth::user()->role === 'admin' ? 'admin.subjects.*' : 'programchair.subjects.*') ? 'bg-dark' : '' }}">
                     Manage Subjects
                 </a>
-            @endif
+             @endif
 
-               <!-- Manage Sections -->
-               @if(Auth::user()->role === 'admin')
+            <!-- Manage Sections -->
+            @if(Auth::user()->role === 'admin')
                 <a href="{{ route('admin.section.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.section.index') ? 'bg-dark' : '' }}">
                     Manage Sections
                 </a>
@@ -109,7 +110,7 @@
                 <div class="dropdown">
                     <a href="#" class="d-block p-2 text-white dropdown-toggle {{ request()->routeIs('admin.rooms.*', 'admin.examrm.*') ? 'bg-dark' : '' }}"
                        id="manageRoomsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Manage Rooms
+                        Manage Rooms]
                     </a>
                     <div class="dropdown-menu">
                         <a href="{{ route('admin.rooms.index') }}" class="dropdown-item">Manage Rooms</a>
