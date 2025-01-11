@@ -77,11 +77,13 @@
              @endif
 
             <!-- Manage Sections -->
-            @if(Auth::user()->role === 'admin')
-                <a href="{{ route('admin.section.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.section.index') ? 'bg-dark' : '' }}">
+            @if(Auth::user()->role === 'admin' || Auth::user()->role === 'program chair')
+                <a href="{{ Auth::user()->role === 'admin' ? route('admin.sections.index') : route('programchair.sections.index') }}"
+                class="d-block p-2 text-white {{ request()->routeIs(Auth::user()->role === 'admin' ? 'admin.sections.*' : 'programchair.sections.*') ? 'bg-dark' : '' }}">
                     Manage Sections
                 </a>
             @endif
+
             
            <!-- Manage Schedules Dropdown -->
            <div class="dropdown">
@@ -106,25 +108,34 @@
 
 
             <!-- Manage Rooms Dropdown -->
-            @if(Auth::user()->role === 'admin')
+            @if(Auth::user()->role === 'admin' || Auth::user()->role === 'program chair')
                 <div class="dropdown">
-                    <a href="#" class="d-block p-2 text-white dropdown-toggle {{ request()->routeIs('admin.rooms.*', 'admin.examrm.*') ? 'bg-dark' : '' }}"
-                       id="manageRoomsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Manage Rooms]
+                    <a href="#" 
+                    class="d-block p-2 text-white dropdown-toggle {{ request()->routeIs(Auth::user()->role === 'admin' ? ['admin.rooms.*', 'admin.examrm.*'] : ['programchair.rooms.*']) ? 'bg-dark' : '' }}" 
+                    id="manageRoomsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Manage Rooms
                     </a>
                     <div class="dropdown-menu">
-                        <a href="{{ route('admin.rooms.index') }}" class="dropdown-item">Manage Rooms</a>
-                        <a href="{{ route('admin.examroom.index') }}" class="dropdown-item">Manage Exam Rooms</a>
+                        @if(Auth::user()->role === 'admin')
+                            <a href="{{ route('admin.rooms.index') }}" class="dropdown-item">Manage Rooms</a>
+                            <a href="{{ route('admin.examroom.index') }}" class="dropdown-item">Manage Exam Rooms</a>
+                        @elseif(Auth::user()->role === 'program chair')
+                            <a href="{{ route('programchair.rooms.index') }}" class="dropdown-item">Manage Rooms</a>
+                        @endif
                     </div>
                 </div>
             @endif
 
+
+
             <!-- Manage Calendar -->
-            @if(Auth::user()->role === 'admin')
-                <a href="{{ route('admin.calendar-events.index') }}" class="d-block p-2 text-white {{ request()->routeIs('admin.calendar-events.*') ? 'bg-dark' : '' }}">
-                    Manage Calendar
-                </a>
-            @endif
+            @if(Auth::user()->role === 'admin' || Auth::user()->role === 'program chair')
+<a href="{{ Auth::user()->role === 'admin' ? route('admin.calendar-events.index') : route('programchair.calendar-events.index') }}" 
+class="d-block p-2 text-white {{ request()->routeIs(Auth::user()->role === 'admin' ? 'admin.calendar-events.*' : 'programchair.calendar-events.*') ? 'bg-dark' : '' }}">
+Manage Calendar
+</a>
+@endif
+
 
         </div>
 

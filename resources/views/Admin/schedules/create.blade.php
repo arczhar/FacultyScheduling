@@ -423,8 +423,10 @@ $(document).ready(function () {
     });
 });
 
-    // Function to convert 24-hour time to 12-hour time format
+  // Function to convert 24-hour time to 12-hour time format (AM/PM)
 function convertTo12HourFormat(time24) {
+    if (!time24) return 'N/A';  // Return 'N/A' if time is empty or null
+
     const [hours, minutes] = time24.split(':').map(Number);
     const period = hours >= 12 ? 'PM' : 'AM';
     const hours12 = (hours % 12) || 12; // Convert to 12-hour format
@@ -434,16 +436,16 @@ function convertTo12HourFormat(time24) {
 }
 
     
-    // Populate faculty schedule table
-    function populateScheduleTable(schedules) {
+    // Example: When displaying schedules in the table
+function populateScheduleTable(schedules) {
     let html = '';
     if (schedules.length === 0) {
         html = `<tr><td colspan="9" class="text-center">No schedule available</td></tr>`;
     } else {
         schedules.forEach(schedule => {
-            const startTime12Hour = schedule.start_time ? convertTo12HourFormat(schedule.start_time) : 'N/A';
-            const endTime12Hour = schedule.end_time ? convertTo12HourFormat(schedule.end_time) : 'N/A';
-            
+            const startTimeFormatted = convertTo12HourFormat(schedule.start_time);
+            const endTimeFormatted = convertTo12HourFormat(schedule.end_time);
+
             html += `
                 <tr id="schedule-row-${schedule.id}">
                     <td>${schedule.subject_code}</td>
@@ -452,7 +454,7 @@ function convertTo12HourFormat(time24) {
                     <td>${schedule.units}</td>
                     <td>${schedule.day}</td>
                     <td>${schedule.room}</td>
-                    <td>${startTime12Hour} - ${endTime12Hour}</td>
+                    <td>${startTimeFormatted} - ${endTimeFormatted}</td>
                     <td>${schedule.section_name || 'N/A'}</td>
                     <td>
                         <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
