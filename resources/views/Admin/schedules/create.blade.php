@@ -357,27 +357,9 @@ $(document).ready(function () {
             }
         },
         error: function (xhr) {
-    try {
-        // Attempt to parse the JSON response
-        const response = JSON.parse(xhr.responseText);
-            console.log("Error Response:", response); // Log the parsed response for debugging
-
-                // Check if the response contains a message array
-                if (response.message && Array.isArray(response.message)) {
-                    const detailedMessages = response.message.map(msg => `<li>${msg}</li>`).join('');
-                    showModal('Conflict Detected', `<ul>${detailedMessages}</ul>`); // Render as HTML
-                } else if (response.message) {
-                    showModal('Error', response.message); // Display single message
-                } else {
-                    showModal('Error', 'An unexpected error occurred.');
-                }
-            } catch (e) {
-                console.error('Error Parsing Response:', e, xhr.responseText);
-                showModal('Error', 'An unexpected error occurred.');
-            }
-        }
-
-
+            console.error('Error:', xhr.responseText);
+            showModal('Conflict', 'Schedule Conflict is Detected');
+        },
     };
 
     // Execute AJAX request
@@ -423,48 +405,36 @@ $(document).ready(function () {
     });
 });
 
-  // Function to convert 24-hour time to 12-hour time format (AM/PM)
-function convertTo12HourFormat(time24) {
-    if (!time24) return 'N/A';  // Return 'N/A' if time is empty or null
-
-    const [hours, minutes] = time24.split(':').map(Number);
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const hours12 = (hours % 12) || 12; // Convert to 12-hour format
-    const formattedHours = hours12.toString().padStart(2, '0');
-    const formattedMinutes = minutes.toString().padStart(2, '0');
-    return `${formattedHours}:${formattedMinutes} ${period}`;
-}
 
     
-    // Example: When displaying schedules in the table
-function populateScheduleTable(schedules) {
+    // Populate faculty schedule table
+    function populateScheduleTable(schedules) {
     let html = '';
-    if (schedules.length === 0) {
-        html = `<tr><td colspan="9" class="text-center">No schedule available</td></tr>`;
-    } else {
-        schedules.forEach(schedule => {
-            const startTimeFormatted = convertTo12HourFormat(schedule.start_time);
-            const endTimeFormatted = convertTo12HourFormat(schedule.end_time);
-
-            html += `
-                <tr id="schedule-row-${schedule.id}">
-                    <td>${schedule.subject_code}</td>
-                    <td>${schedule.subject_description}</td>
-                    <td>${schedule.type}</td>
-                    <td>${schedule.units}</td>
-                    <td>${schedule.day}</td>
-                    <td>${schedule.room}</td>
-                    <td>${startTimeFormatted} - ${endTimeFormatted}</td>
-                    <td>${schedule.section_name || 'N/A'}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
-                        <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
-                    </td>
-                </tr>`;
-        });
+        if (schedules.length === 0) {
+            html = `<tr><td colspan="9" class="text-center">No schedule available</td></tr>`;
+        } else {
+            schedules.forEach(schedule => {
+                html += `
+                    <tr id="schedule-row-${schedule.id}">
+                        <td>${schedule.subject_code}</td>
+                        <td>${schedule.subject_description}</td>
+                        <td>${schedule.type}</td>
+                        <td>${schedule.units}</td>
+                        <td>${schedule.day}</td>
+                        <td>${schedule.room}</td>
+                        <td>${schedule.time || 'N/A'}</td>
+                        <td>${schedule.section_name || 'N/A'}</td> <!-- Correctly display section -->
+                        <td>
+                            <button class="btn btn-warning btn-sm edit-schedule" data-id="${schedule.id}">Edit</button>
+                            <button class="btn btn-danger btn-sm delete-schedule" data-id="${schedule.id}">Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+        $('#schedule_table_body').html(html);
     }
-    $('#schedule_table_body').html(html);
-}
+
+
 
 
     // Reset form fields
@@ -483,12 +453,12 @@ function populateScheduleTable(schedules) {
 
     // Show modal with message
     function showModal(title, message) {
-    $('#validationModal .modal-title').text(title);
-    $('#validationModal .modal-body').html(message); // Use .html() to render the HTML content
-    $('#validationModal').modal('show');
-}
+        $('#validationModal .modal-title').text(title);
+        $('#validationModal .modal-body').text(message);
+        $('#validationModal').modal('show');
+    }
 
-
+    
     function appendScheduleRow(schedule) {
     const row = `
         <tr id="schedule-row-${schedule.id}">
