@@ -478,6 +478,48 @@ $(document).ready(function () {
     $('#schedule_table_body').append(row);
 }
 
+ // Define time options
+ const timeOptions = [
+        { value: "07:00", label: "07:00 AM" },
+        { value: "08:00", label: "08:00 AM" },
+        { value: "09:00", label: "09:00 AM" },
+        { value: "10:00", label: "10:00 AM" },
+        { value: "11:00", label: "11:00 AM" },
+        { value: "12:00", label: "12:00 PM" },
+        { value: "13:00", label: "01:00 PM" },
+        { value: "14:00", label: "02:00 PM" },
+        { value: "15:00", label: "03:00 PM" },
+        { value: "16:00", label: "04:00 PM" },
+        { value: "17:00", label: "05:00 PM" },
+        { value: "18:00", label: "06:00 PM" },
+        { value: "19:00", label: "07:00 PM" },
+        { value: "20:00", label: "08:00 PM" }
+    ];
+
+    const startTimeSelect = document.getElementById("start_time");
+    const endTimeSelect = document.getElementById("end_time");
+
+    // Update end_time options based on selected start_time
+    startTimeSelect.addEventListener("change", function () {
+        const selectedTime = this.value;
+
+        // Clear previous options in end_time
+        endTimeSelect.innerHTML = '<option value="">Select End Time</option>';
+
+        // Add new options starting one hour after selectedTime
+        let addTime = false;
+        timeOptions.forEach(option => {
+            if (addTime) {
+                const newOption = document.createElement("option");
+                newOption.value = option.value;
+                newOption.textContent = option.label;
+                endTimeSelect.appendChild(newOption);
+            }
+            if (option.value === selectedTime) {
+                addTime = true;
+            }
+        });
+    });
 
 function updateScheduleRow(scheduleId, schedule) {
     const row = `
